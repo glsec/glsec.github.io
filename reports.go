@@ -20,6 +20,13 @@ type Report struct {
 	Wiring string // a job that publishes it, if GitLab reads it as a report
 	Open   bool   // show the output expanded
 	Output string
+	Shot   *Screenshot
+}
+
+// Screenshot shows where a report appears in GitLab. It is taken by hand from
+// a merge request kept open for this, so it doesn't follow the release.
+type Screenshot struct {
+	Src, Alt, Caption, Link string
 }
 
 // reportFormats are glsec's output formats in the order the page shows them.
@@ -34,6 +41,12 @@ var reportFormats = []Report{
 	{Format: "codeclimate", Name: "GitLab Code Quality",
 		Use:   "The Code Climate JSON that GitLab's Code Quality report reads.",
 		Where: "The merge request's Code Quality report on all tiers. With Premium also a Code Quality tab in the pipeline, with Ultimate inline in the merge request diff.",
+		Shot: &Screenshot{
+			Src:     "/screenshots/code-quality-mr.png",
+			Alt:     "GitLab merge request Code Quality report: Code Quality scans found 4 new findings, two Critical (mutable image tag python:latest, curl piped to sh) and two Major (pipe without pipefail, deploy job without a pipeline-source guard), each with its line in bad-pipeline.yml",
+			Caption: "The Code Quality report of a merge request on GitLab.com (Free tier) that adds a job with four findings.",
+			Link:    "https://gitlab.com/glsec-io/examples/component-code-quality/-/merge_requests/7",
+		},
 		Wiring: `glsec:
   image:
     name: ghcr.io/glsec/glsec:{{VERSION}}
