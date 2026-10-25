@@ -232,7 +232,8 @@ func TestOWASPRisks(t *testing.T) {
 func TestBuild_ReportsPage(t *testing.T) {
 	page := read(t, filepath.Join(buildFixture(t), "reports", "index.html"))
 	for _, want := range []string{
-		"real output of glsec 1.23.0",
+		"what glsec 1.23.0 prints for this pipeline file, regenerated with every release",
+		"The GitLab screenshots are taken by hand",
 		"<code>deploy:\n  image: alpine:latest</code>",
 		`<section class="report" id="codeclimate">`,
 		"codeclimate output &lt;x&gt;",

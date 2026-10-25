@@ -45,7 +45,7 @@
 {{define "reports.html"}}{{template "head" .}}
 <main class="wrap doc">
   <h1>Example reports</h1>
-  <p>Everything below is real output of glsec {{.Version}} for the same pipeline file, regenerated with every release:</p>
+  <p>Each output below is what glsec {{.Version}} prints for this pipeline file, regenerated with every release. The GitLab screenshots are taken by hand from merge requests and pipelines in the <a href="https://gitlab.com/glsec-io/examples">example projects</a>, which scan their own <code>bad-pipeline.yml</code>.</p>
   <pre><code>{{.Input}}</code></pre>
   <nav class="toc" aria-label="Formats">{{range .Reports}}<a href="#{{.Format}}">{{.Name}}</a>{{end}}</nav>
   {{range .Reports}}
