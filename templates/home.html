@@ -46,8 +46,14 @@
 tar xzf glsec_{{.Version}}_linux_amd64.tar.gz</code></pre>
         <p>Linux, macOS and Windows on <a href="https://github.com/glsec/glsec/releases/tag/v{{.Version}}">the release page</a>. Or <code>go install github.com/glsec/glsec/cmd/glsec@v{{.Version}}</code>.</p>
       </div>
+      <div class="card">
+        <h3>Claude Code plugin</h3>
+<pre><code>/plugin marketplace add glsec/glsec
+/plugin install glsec@glsec</code></pre>
+        <p>Adds <code>/glsec:scan</code>, which scans the project and has Claude explain and fix each finding, and a hook that scans a <code>.gitlab-ci.yml</code> or <code>.gitlab/*.yml</code> file after Claude edits it. Without a <code>glsec</code> on your <code>PATH</code> it downloads the release binary and checks it against <code>checksums.txt</code> and, with cosign or the GitHub CLI installed, its signed provenance. Linux and macOS; the edit hook needs <code>jq</code>. <a href="https://github.com/glsec/glsec#claude-code-plugin">Details</a> in the README.</p>
+      </div>
     </div>
-    <p class="note">Also available as a pre-commit hook, a MegaLinter plugin and a Claude Code plugin. Output formats: text, table, JSON, SARIF, GitLab Code Quality and JUnit, with <a href="/reports/">an example of each</a>. See the <a href="https://github.com/glsec/glsec#readme">README</a> for every option, and <a href="https://github.com/glsec/glsec#verifying-a-release">Verifying a release</a> to check a download before you run it.</p>
+    <p class="note">Also available as a pre-commit hook and a MegaLinter plugin. Output formats: text, table, JSON, SARIF, GitLab Code Quality and JUnit, with <a href="/reports/">an example of each</a>. See the <a href="https://github.com/glsec/glsec#readme">README</a> for every option, and <a href="https://github.com/glsec/glsec#verifying-a-release">Verifying a release</a> to check a download before you run it.</p>
   </section>
 </main>
 {{template "foot" .}}{{end}}
