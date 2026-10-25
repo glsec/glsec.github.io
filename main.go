@@ -65,7 +65,7 @@ type Page struct {
 	Component   string
 	Sample      []template.HTML // lines of the home page example
 	Reports     []Report
-	Input       string // the file the reports are for
+	Input       []string // lines of the file the reports are for
 	Risks       []Risk
 	Covered     int // OWASP risks with at least one rule
 	Outside     int // OWASP risks a pipeline file can't show
@@ -148,7 +148,7 @@ func build(o Options) error {
 		Title:       "glsec: security linter for GitLab CI/CD",
 		Description: fmt.Sprintf("glsec finds security problems in .gitlab-ci.yml before they reach a runner: %d rules, offline, one binary.", len(ids)),
 		Path:        "/",
-		Sample:      ansiLines(reports[0].Output),
+		Sample:      homeSample(reports[0].Output, homeFindings),
 		Covered:     covered,
 	}, "home.html"); err != nil {
 		return err
@@ -159,7 +159,7 @@ func build(o Options) error {
 		Description: "What glsec's text, table, GitLab Code Quality, JUnit, SARIF and JSON output look like, and where GitLab shows each one.",
 		Path:        "/reports/",
 		Reports:     reports,
-		Input:       input,
+		Input:       strings.Split(input, "\n"),
 	}, "reports.html"); err != nil {
 		return err
 	}

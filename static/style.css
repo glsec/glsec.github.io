@@ -94,6 +94,8 @@ pre {
   white-space: pre-wrap; overflow-wrap: anywhere; font-size: 0.78rem; margin: 0;
 }
 .terminal .prompt { color: #9aa6b2; }
+.terminal .more { color: #9aa6b2; }
+.terminal .more a { color: var(--orange); }
 .terminal .line { display: inline; }
 
 /* The command is typed, then the findings appear line by line. Without
@@ -101,12 +103,12 @@ pre {
 @media (prefers-reduced-motion: no-preference) {
   .terminal .cmd {
     display: inline-block; vertical-align: bottom; overflow: hidden; white-space: pre;
-    box-sizing: content-box; width: 20ch; border-right: 0.6em solid transparent;
-    animation: type 0.9s steps(20) 0.3s both, caret 0.5s step-end 0.3s 3;
+    box-sizing: content-box; width: 22ch; border-right: 0.6em solid transparent;
+    animation: type 0.9s steps(22) 0.3s both, caret 0.5s step-end 0.3s 3;
   }
   .terminal .line { animation: appear 0.15s ease-out both; animation-delay: calc(1.4s + var(--i) * 45ms); }
 }
-@keyframes type { from { width: 0; } to { width: 20ch; } }
+@keyframes type { from { width: 0; } to { width: 22ch; } }
 @keyframes caret { 50% { border-right-color: #9aa6b2; } }
 @keyframes appear { from { opacity: 0; } to { opacity: 1; } }
 
@@ -188,3 +190,11 @@ pre.output { max-height: 520px; }
 .ansi-yellow { color: var(--ansi-yellow); }
 .terminal .ansi-red { color: #ff7b72; }
 .terminal .ansi-yellow { color: #e3b341; }
+
+/* Line numbers for the scanned file, so findings like bad-pipeline.yml:17 can be found. */
+pre.numbered code { counter-reset: ln; }
+pre.numbered .ln::before {
+  counter-increment: ln; content: counter(ln);
+  display: inline-block; width: 2.5ch; margin-right: 1.5ch; text-align: right;
+  color: var(--muted); user-select: none;
+}

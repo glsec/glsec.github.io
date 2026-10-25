@@ -1,0 +1,62 @@
+# The pipeline of a small Node.js service, with the kind of security mistakes
+# glsec reports. Intentionally insecure: don't copy it.
+
+include:
+  - project: platform/ci-templates
+    ref: main
+    file: /templates/notify.yml
+  - template: Security/Secret-Detection.gitlab-ci.yml
+
+variables:
+  DOCKER_AUTH_CONFIG: '{"auths":{"registry.example.com":{"auth":"ZGVwbG95OnMzY3IzdA=="}}}'
+
+stages: [build, test, deploy]
+
+build:
+  stage: build
+  image: node:latest
+  script:
+    - npm install
+    - npm run build
+  artifacts:
+    expire_in: 1 week
+    paths:
+      - dist/
+      - .env
+
+docker-image:
+  stage: build
+  image: docker:27.3.1
+  services:
+    - docker:27.3.1-dind
+  variables:
+    DOCKER_HOST: tcp://docker:2375
+    DOCKER_TLS_CERTDIR: ""
+  script:
+    - docker build -t registry.example.com/shop/api:$CI_COMMIT_SHORT_SHA .
+    - docker push registry.example.com/shop/api:$CI_COMMIT_SHORT_SHA
+
+test:
+  stage: test
+  image: node:22.11.0
+  script:
+    - npm ci
+    - echo Running tests for $CI_COMMIT_REF_NAME
+    - npm test
+
+secret_detection:
+  rules:
+    - when: never
+
+deploy:
+  stage: deploy
+  image: alpine:3.20.3
+  environment: production
+  id_tokens:
+    AWS_TOKEN:
+      aud: https://sts.amazonaws.com
+  script:
+    - set -x
+    - curl -sSL https://get.example.com/install.sh | sh
+    - 'curl -H "Authorization: Bearer $DEPLOY_TOKEN" "https://hooks.example.com/deploy?branch=$CI_COMMIT_REF_NAME"'
+    - ssh -o StrictHostKeyChecking=no deploy@prod.example.com ./release.sh

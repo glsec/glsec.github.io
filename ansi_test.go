@@ -54,3 +54,28 @@ func TestAnsiLines(t *testing.T) {
 		}
 	}
 }
+
+func TestHomeSample(t *testing.T) {
+	out := "\x1b[31merror\x1b[0m[GL001]: a\n  --> f:1\n\nwarn[GL002]: b\n  --> f:2\n\nerror[GL003]: c\n  --> f:3\n"
+	got := homeSample(out, 1)
+	want := []template.HTML{
+		`<span class="ansi-red">error</span>[GL001]: a`,
+		"  --&gt; f:1",
+		"",
+		`<span class="more">… and 2 more findings: <a href="/reports/#text">see the full report</a></span>`,
+	}
+	if len(got) != len(want) {
+		t.Fatalf("got %d lines: %q", len(got), got)
+	}
+	for i := range want {
+		if got[i] != want[i] {
+			t.Errorf("line %d = %q, want %q", i, got[i], want[i])
+		}
+	}
+	if g := homeSample(out, 2); g[len(g)-1] != `<span class="more">… and 1 more finding: <a href="/reports/#text">see the full report</a></span>` {
+		t.Errorf("singular: %q", g[len(g)-1])
+	}
+	if g := homeSample(out, 3); len(g) != len(ansiLines(out)) {
+		t.Errorf("all findings fit, but the output was cut: %q", g)
+	}
+}

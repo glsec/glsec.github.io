@@ -2,7 +2,7 @@
 
 Source of <https://glsec.github.io>, the website and rule reference for [glsec](https://github.com/glsec/glsec).
 
-The rule pages are generated from `docs/rules.md` and `docs/rules/GLxxx.md` in the glsec repository, at the latest release tag, so the site always describes the version people can install. The OWASP page sorts the rules from that release's `glsec list --format json` into the ten OWASP CI/CD risks. The example on the home page and the example reports are the output of that release's binary on [`sample/.gitlab-ci.yml`](sample/.gitlab-ci.yml), in every format.
+The rule pages are generated from `docs/rules.md` and `docs/rules/GLxxx.md` in the glsec repository, at the latest release tag, so the site always describes the version people can install. The OWASP page sorts the rules from that release's `glsec list --format json` into the ten OWASP CI/CD risks. The example on the home page and the example reports are the output of that release's binary on [`sample/bad-pipeline.yml`](sample/bad-pipeline.yml), in every format. The GitLab example projects (gitlab.com/glsec-io/examples) scan the same file, and the screenshots on the reports page come from them, so keep the copies in sync.
 
 ## Building
 

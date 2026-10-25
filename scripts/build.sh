@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 # Builds the site into _site from the latest glsec release: its docs, its
-# rule list, the output of its binary on sample/.gitlab-ci.yml in every format,
+# rule list, the output of its binary on sample/bad-pipeline.yml in every format,
 # and the latest GitLab
 # component release. Needs git, go, curl, jq and GH_TOKEN for the GitHub API.
 set -euo pipefail
@@ -26,13 +26,13 @@ go build -C "$work/glsec" -o "$work/glsec-bin" ./cmd/glsec
 # The sample in every output format. glsec exits 1 on the sample's error
 # findings; anything else is a failure.
 mkdir "$work/reports"
-cp sample/.gitlab-ci.yml "$work/reports/input.yml"
+cp sample/bad-pipeline.yml "$work/reports/input.yml"
 for format in text table codeclimate junit sarif json; do
   rc=0
   # Text keeps glsec's terminal colours; the site turns them into spans.
   color=--no-color
   [ "$format" = text ] && color=
-  (cd sample && FORCE_COLOR=1 "$work/glsec-bin" $color --format "$format" .gitlab-ci.yml) > "$work/reports/$format.txt" || rc=$?
+  (cd sample && FORCE_COLOR=1 "$work/glsec-bin" $color --format "$format" bad-pipeline.yml) > "$work/reports/$format.txt" || rc=$?
   [ "$rc" -eq 1 ] || { echo "glsec --format $format exited $rc on the sample" >&2; cat "$work/reports/$format.txt" >&2; exit 1; }
 done
 
