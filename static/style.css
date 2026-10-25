@@ -142,7 +142,9 @@ tbody tr:hover { background: var(--surface); }
 .bottom a { color: var(--on-slate); }
 
 @media (max-width: 480px) {
-  nav { gap: 14px; font-size: 0.95rem; }
+  /* The links get their own row under the logo instead of overflowing. */
+  .top-inner { height: auto; flex-wrap: wrap; row-gap: 6px; padding-top: 10px; padding-bottom: 8px; }
+  nav { width: 100%; justify-content: space-between; font-size: 0.95rem; }
   .brand { font-size: 1.2rem; }
 }
 
