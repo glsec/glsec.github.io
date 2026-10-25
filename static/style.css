@@ -173,3 +173,7 @@ details { margin: 10px 0; }
 summary { cursor: pointer; font-weight: 600; color: var(--text); }
 summary:hover { color: var(--link); }
 pre.output { max-height: 520px; }
+
+.shot { margin: 16px 0; }
+.shot img { display: block; max-width: 100%; height: auto; border: 1px solid var(--line); border-radius: 4px; background: #fff; }
+.shot figcaption { color: var(--muted); font-size: 0.9rem; margin-top: 6px; }
