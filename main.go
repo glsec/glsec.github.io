@@ -63,7 +63,7 @@ type Page struct {
 	Path        string // site path, "/" or "/rules/GL001/"
 	Version     string
 	Component   string
-	Sample      []string // lines of the home page example
+	Sample      []template.HTML // lines of the home page example
 	Reports     []Report
 	Input       string // the file the reports are for
 	Risks       []Risk
@@ -148,7 +148,7 @@ func build(o Options) error {
 		Title:       "glsec: security linter for GitLab CI/CD",
 		Description: fmt.Sprintf("glsec finds security problems in .gitlab-ci.yml before they reach a runner: %d rules, offline, one binary.", len(ids)),
 		Path:        "/",
-		Sample:      strings.Split(reports[0].Output, "\n"),
+		Sample:      ansiLines(reports[0].Output),
 		Covered:     covered,
 	}, "home.html"); err != nil {
 		return err

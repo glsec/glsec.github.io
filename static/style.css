@@ -16,6 +16,9 @@
   --line: #e1e6eb;
   --link: #c24a00;
   --code-bg: #eef1f4;
+  /* glsec's terminal colours: red for errors, yellow for warnings. */
+  --ansi-red: #c62828;
+  --ansi-yellow: #8a6100;
   color-scheme: light dark;
 }
 
@@ -28,6 +31,8 @@
     --line: #2c3742;
     --link: #ff8a3d;
     --code-bg: #212b34;
+    --ansi-red: #ff7b72;
+    --ansi-yellow: #e3b341;
   }
 }
 
@@ -177,3 +182,9 @@ pre.output { max-height: 520px; }
 .shot { margin: 16px 0; }
 .shot img { display: block; max-width: 100%; height: auto; border: 1px solid var(--line); border-radius: 4px; background: #fff; }
 .shot figcaption { color: var(--muted); font-size: 0.9rem; margin-top: 6px; }
+
+.ansi-bold { font-weight: 700; }
+.ansi-red { color: var(--ansi-red); }
+.ansi-yellow { color: var(--ansi-yellow); }
+.terminal .ansi-red { color: #ff7b72; }
+.terminal .ansi-yellow { color: #e3b341; }
