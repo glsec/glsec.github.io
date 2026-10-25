@@ -1,0 +1,105 @@
+/* SPDX-FileCopyrightText: The glsec Authors */
+/* SPDX-License-Identifier: Apache-2.0 */
+
+:root {
+  --bg: #fbfaf8;
+  --surface: #ffffff;
+  --text: #1d1b19;
+  --muted: #5f5a54;
+  --line: #e5e0d9;
+  --accent: #c2410c;
+  --accent-text: #ffffff;
+  --code-bg: #f3f0eb;
+  --term-bg: #1d1b19;
+  --term-text: #ebe7e1;
+  --term-muted: #a8a29b;
+  color-scheme: light dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #141312;
+    --surface: #1c1b19;
+    --text: #ece9e4;
+    --muted: #a8a29b;
+    --line: #34312e;
+    --accent: #f08a5d;
+    --accent-text: #141312;
+    --code-bg: #23211f;
+    --term-bg: #0c0b0b;
+  }
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font: 17px/1.6 ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+a { color: var(--accent); text-underline-offset: 2px; }
+
+.wrap { max-width: 880px; margin: 0 auto; padding: 0 16px; }
+
+code, pre { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.88em; }
+:not(pre) > code { background: var(--code-bg); padding: 0.1em 0.35em; border-radius: 4px; overflow-wrap: anywhere; }
+pre {
+  background: var(--code-bg);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 14px 16px;
+  overflow-x: auto;
+  line-height: 1.5;
+}
+
+.top { border-bottom: 1px solid var(--line); background: var(--surface); }
+.top-inner { display: flex; align-items: center; justify-content: space-between; gap: 16px; height: 56px; }
+.brand { display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 1.1rem; color: var(--text); text-decoration: none; }
+.brand-mark { width: 20px; height: 20px; background: url(/favicon.svg) center / contain no-repeat; }
+nav { display: flex; gap: 20px; }
+nav a { color: var(--muted); text-decoration: none; }
+nav a:hover, nav a[aria-current="page"] { color: var(--text); }
+
+.hero { padding-top: 64px; padding-bottom: 16px; }
+.hero h1 { font-size: clamp(2rem, 5vw, 2.8rem); line-height: 1.15; letter-spacing: -0.02em; margin: 0 0 16px; }
+.hero h1 code { font-size: 0.85em; background: none; padding: 0; color: var(--accent); }
+.lede { font-size: 1.15rem; color: var(--muted); max-width: 680px; }
+.actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 24px; }
+.button {
+  display: inline-block; padding: 10px 18px; border-radius: 8px;
+  background: var(--accent); color: var(--accent-text); text-decoration: none; font-weight: 600;
+  border: 1px solid var(--accent);
+}
+.button.ghost { background: transparent; color: var(--accent); }
+
+main > section { margin-bottom: 48px; }
+h2 { font-size: 1.35rem; margin: 48px 0 12px; }
+h3 { font-size: 1.05rem; margin: 0 0 8px; }
+
+.terminal { background: var(--term-bg); color: var(--term-text); border: none; white-space: pre; font-size: 0.8rem; }
+.terminal .prompt { color: var(--term-muted); }
+.note { color: var(--muted); }
+
+.cards { display: grid; gap: 16px; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 18px; min-width: 0; }
+.card pre { margin: 8px 0; font-size: 0.85rem; }
+.card p { margin: 8px 0 0; color: var(--muted); font-size: 0.95rem; }
+
+.doc { padding-top: 32px; padding-bottom: 48px; }
+.doc h1 { font-size: 2rem; line-height: 1.2; margin: 8px 0 20px; }
+.doc h2 { border-top: 1px solid var(--line); padding-top: 24px; }
+.rule-id { color: var(--accent); font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; margin-right: 6px; }
+.crumbs { color: var(--muted); margin: 0; font-size: 0.95rem; }
+.crumbs a { color: var(--muted); }
+.source { color: var(--muted); font-size: 0.95rem; margin-top: 40px; border-top: 1px solid var(--line); padding-top: 16px; }
+
+table { border-collapse: collapse; width: 100%; display: block; overflow-x: auto; font-size: 0.95rem; }
+th, td { border-bottom: 1px solid var(--line); padding: 8px 10px; text-align: left; vertical-align: top; }
+th { background: var(--code-bg); }
+td:first-child { white-space: nowrap; }
+.doc hr { display: none; }
+
+.bottom { border-top: 1px solid var(--line); color: var(--muted); font-size: 0.9rem; padding: 16px 0 24px; }
+.bottom a { color: var(--muted); }
