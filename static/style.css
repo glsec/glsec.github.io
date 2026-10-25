@@ -57,9 +57,9 @@ pre {
 
 /* Header and hero share the slate of the logo. */
 .top { background: var(--slate); color: var(--on-slate); border-bottom: 3px solid var(--orange); }
-.top-inner { display: flex; align-items: center; justify-content: space-between; gap: 16px; height: 60px; }
+.top-inner { display: flex; align-items: center; justify-content: space-between; gap: 16px; height: 64px; }
 .brand { display: flex; align-items: center; gap: 10px; text-decoration: none; font-weight: 800; font-size: 1.35rem; letter-spacing: -0.01em; }
-.brand-mark { width: 26px; height: 26px; background: url(/favicon.svg) center / contain no-repeat; }
+.brand-mark { width: 33px; height: 40px; }
 .brand .gl { color: var(--on-slate); }
 .brand .sec { color: var(--orange); }
 nav { display: flex; gap: 22px; }

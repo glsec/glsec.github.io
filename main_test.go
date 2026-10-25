@@ -35,7 +35,7 @@ func read(t *testing.T, path string) string {
 
 func TestBuild_Pages(t *testing.T) {
 	out := buildFixture(t)
-	for _, p := range []string{"index.html", "404.html", "owasp/index.html", "reports/index.html", "rules/index.html", "rules/GL001/index.html", "rules/GL002/index.html", "style.css", "favicon.svg", "sitemap.xml", "robots.txt"} {
+	for _, p := range []string{"index.html", "404.html", "owasp/index.html", "reports/index.html", "rules/index.html", "rules/GL001/index.html", "rules/GL002/index.html", "style.css", "favicon.svg", "logo.png", "sitemap.xml", "robots.txt"} {
 		if _, err := os.Stat(filepath.Join(out, p)); err != nil {
 			t.Errorf("missing %s", p)
 		}
