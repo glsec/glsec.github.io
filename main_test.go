@@ -241,6 +241,8 @@ func TestBuild_ReportsPage(t *testing.T) {
 		"junit: glsec-junit.xml",
 		`<a href="#sarif">SARIF</a>`,
 		`<img src="/screenshots/code-quality-mr.png"`,
+		`<img src="/screenshots/junit-tests.png"`,
+		"expire_in: 30 days",
 		`aria-current="page">Reports</a>`,
 	} {
 		if !strings.Contains(page, want) {
