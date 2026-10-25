@@ -132,7 +132,10 @@ h3 { font-size: 1.05rem; margin: 0 0 8px; }
 table { border-collapse: collapse; width: 100%; display: block; overflow-x: auto; font-size: 0.95rem; }
 th, td { border-bottom: 1px solid var(--line); padding: 8px 10px; text-align: left; vertical-align: top; }
 th { background: var(--slate); color: var(--on-slate); font-weight: 600; }
-td:first-child { white-space: nowrap; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+/* Rule IDs in the overview stay on one line; other first columns wrap. */
+td:first-child a { white-space: nowrap; }
+/* A code span in a table wraps as a whole, never inside a name. */
+td code { white-space: nowrap; }
 tbody tr:hover { background: var(--surface); }
 
 .bottom { background: var(--slate); color: var(--on-slate-muted); font-size: 0.9rem; padding: 18px 0 22px; margin-top: 40px; }
