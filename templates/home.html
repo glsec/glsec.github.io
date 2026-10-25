@@ -1,0 +1,44 @@
+{{define "home.html"}}{{template "head" .}}
+<main>
+  <section class="hero wrap">
+    <h1>Find the security problems in your <code>.gitlab-ci.yml</code> before a runner does.</h1>
+    <p class="lede">glsec is a static security linter for GitLab CI/CD pipelines. {{.RuleCount}} rules cover mutable images and includes, script injection through branch names and commit messages, leaked secrets, unprotected deployments and more. It runs offline as a single binary and never executes your pipeline.</p>
+    <p class="actions">
+      <a class="button" href="#install">Install</a>
+      <a class="button ghost" href="/rules/">Browse the rules</a>
+    </p>
+  </section>
+
+  <section class="wrap">
+    <h2>What a finding looks like</h2>
+    <pre class="terminal" aria-label="glsec output"><span class="prompt">$ glsec .gitlab-ci.yml</span>
+{{.Sample}}</pre>
+    <p class="note">Every finding names the rule, the line and the job. Each rule has a page with the risk, what is flagged and a safe alternative, for example <a href="/rules/GL001/">GL001</a> and <a href="/rules/GL011/">GL011</a>.</p>
+  </section>
+
+  <section class="wrap" id="install">
+    <h2>Install</h2>
+    <div class="cards">
+      <div class="card">
+        <h3>GitLab CI/CD component</h3>
+<pre><code>include:
+  - component: gitlab.com/glsec-io/glsec/glsec@{{.Component}}</code></pre>
+        <p>From the <a href="https://gitlab.com/explore/catalog/glsec-io/glsec">CI/CD Catalog</a>. A second component reports findings in the merge request's Code Quality widget.</p>
+      </div>
+      <div class="card">
+        <h3>Docker</h3>
+<pre><code>docker run --rm -v "$PWD:/src:ro" -w /src \
+  ghcr.io/glsec/glsec:{{.Version}}</code></pre>
+        <p>Signed with cosign, with SLSA provenance and an SBOM.</p>
+      </div>
+      <div class="card">
+        <h3>Binary</h3>
+<pre><code>curl -sSLO https://github.com/glsec/glsec/releases/download/v{{.Version}}/glsec_{{.Version}}_linux_amd64.tar.gz
+tar xzf glsec_{{.Version}}_linux_amd64.tar.gz</code></pre>
+        <p>Linux, macOS and Windows on <a href="https://github.com/glsec/glsec/releases/tag/v{{.Version}}">the release page</a>. Or <code>go install github.com/glsec/glsec/cmd/glsec@v{{.Version}}</code>.</p>
+      </div>
+    </div>
+    <p class="note">Also available as a pre-commit hook, a MegaLinter plugin and a Claude Code plugin. Output formats: text, table, JSON, SARIF, GitLab Code Quality and JUnit. See the <a href="https://github.com/glsec/glsec#readme">README</a> for every option, and <a href="https://github.com/glsec/glsec#verifying-a-release">Verifying a release</a> to check a download before you run it.</p>
+  </section>
+</main>
+{{template "foot" .}}{{end}}

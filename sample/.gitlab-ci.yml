@@ -1,0 +1,9 @@
+workflow:
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+
+deploy:
+  image: alpine:latest
+  script:
+    - echo "Deploying $CI_COMMIT_REF_NAME"
+    - curl -sSL https://example.com/install.sh | sh

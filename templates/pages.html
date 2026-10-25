@@ -1,0 +1,22 @@
+{{define "overview.html"}}{{template "head" .}}
+<main class="wrap doc">
+  <h1>Rules</h1>
+  {{.Body}}
+</main>
+{{template "foot" .}}{{end}}
+
+{{define "rule.html"}}{{template "head" .}}
+<main class="wrap doc">
+  <p class="crumbs"><a href="/rules/">Rules</a> / {{.Rule.ID}}</p>
+  <h1><span class="rule-id">{{.Rule.ID}}</span> {{.Rule.TitleHTML}}</h1>
+  {{.Rule.Body}}
+  <p class="source">Documentation for glsec {{.Version}}. <a href="https://github.com/glsec/glsec/blob/v{{.Version}}/docs/rules/{{.Rule.ID}}.md">Source of this page</a> · <a href="https://github.com/glsec/glsec/blob/v{{.Version}}/rules/{{lower .Rule.ID}}.go">Rule implementation</a></p>
+</main>
+{{template "foot" .}}{{end}}
+
+{{define "404.html"}}{{template "head" .}}
+<main class="wrap doc">
+  <h1>Page not found</h1>
+  <p>Try the <a href="/rules/">rule list</a> or the <a href="/">home page</a>.</p>
+</main>
+{{template "foot" .}}{{end}}
