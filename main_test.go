@@ -12,7 +12,7 @@ import (
 )
 
 func fixture(out string) Options {
-	return Options{Src: "testdata/src", Version: "1.23.0", Component: "v1.0.25", Sample: "testdata/sample.txt", Rules: "testdata/rules.json", Out: out}
+	return Options{Src: "testdata/src", Version: "1.23.0", Component: "v1.0.25", Reports: "testdata/reports", Rules: "testdata/rules.json", Out: out}
 }
 
 func buildFixture(t *testing.T) string {
@@ -35,7 +35,7 @@ func read(t *testing.T, path string) string {
 
 func TestBuild_Pages(t *testing.T) {
 	out := buildFixture(t)
-	for _, p := range []string{"index.html", "404.html", "owasp/index.html", "rules/index.html", "rules/GL001/index.html", "rules/GL002/index.html", "style.css", "favicon.svg", "sitemap.xml", "robots.txt"} {
+	for _, p := range []string{"index.html", "404.html", "owasp/index.html", "reports/index.html", "rules/index.html", "rules/GL001/index.html", "rules/GL002/index.html", "style.css", "favicon.svg", "sitemap.xml", "robots.txt"} {
 		if _, err := os.Stat(filepath.Join(out, p)); err != nil {
 			t.Errorf("missing %s", p)
 		}
@@ -96,9 +96,9 @@ func TestBuild_Rejects(t *testing.T) {
 		"no version":       func(o *Options) { o.Version = "" },
 		"bad version":      func(o *Options) { o.Version = "1.23" },
 		"bad component":    func(o *Options) { o.Component = "1.0.25" },
-		"no sample":        func(o *Options) { o.Sample = "testdata/missing.txt" },
+		"no reports":       func(o *Options) { o.Reports = "testdata/missing" },
 		"no rule list":     func(o *Options) { o.Rules = "testdata/missing.json" },
-		"rule list broken": func(o *Options) { o.Rules = "testdata/sample.txt" },
+		"rule list broken": func(o *Options) { o.Rules = "testdata/reports/text.txt" },
 		"no rules in tree": func(o *Options) { o.Src = "testdata" },
 	} {
 		o := fixture(filepath.Join(t.TempDir(), "o"))
@@ -224,5 +224,46 @@ func TestOWASPRisks(t *testing.T) {
 		if (r.Summary == "") == (r.Outside == "") {
 			t.Errorf("%s needs exactly one of Summary and Outside", r.ID)
 		}
+	}
+}
+
+func TestBuild_ReportsPage(t *testing.T) {
+	page := read(t, filepath.Join(buildFixture(t), "reports", "index.html"))
+	for _, want := range []string{
+		"real output of glsec 1.23.0",
+		"<code>deploy:\n  image: alpine:latest</code>",
+		`<section class="report" id="codeclimate">`,
+		"codeclimate output &lt;x&gt;",
+		"codequality: gl-code-quality.json",
+		"name: ghcr.io/glsec/glsec:1.23.0",
+		"junit: glsec-junit.xml",
+		`<a href="#sarif">SARIF</a>`,
+		`aria-current="page">Reports</a>`,
+	} {
+		if !strings.Contains(page, want) {
+			t.Errorf("reports page lacks %s", want)
+		}
+	}
+	if strings.Contains(page, "{{VERSION}}") {
+		t.Error("reports page has an unreplaced version")
+	}
+	// Formats GitLab doesn't read as a report get no wiring.
+	if n := strings.Count(page, "Job that publishes it"); n != 2 {
+		t.Errorf("%d wiring snippets, want 2", n)
+	}
+}
+
+func TestLoadReports_RejectsEmptyOutput(t *testing.T) {
+	dir := t.TempDir()
+	for _, f := range []string{"input.yml", "text.txt", "table.txt", "codeclimate.txt", "junit.txt", "sarif.txt"} {
+		if err := os.WriteFile(filepath.Join(dir, f), []byte("x\n"), 0o644); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if err := os.WriteFile(filepath.Join(dir, "json.txt"), []byte("\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if _, _, err := loadReports(dir, "1.23.0"); err == nil || !strings.Contains(err.Error(), "json") {
+		t.Errorf("err = %v", err)
 	}
 }
