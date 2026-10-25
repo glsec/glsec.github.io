@@ -270,3 +270,14 @@ func TestLoadReports_RejectsEmptyOutput(t *testing.T) {
 		t.Errorf("err = %v", err)
 	}
 }
+
+// The header's link colours are light-on-slate; scoped to the header, they
+// can't make other nav elements, such as the formats on /reports/, unreadable.
+func TestHeaderNavStylesAreScoped(t *testing.T) {
+	css := read(t, filepath.Join("static", "style.css"))
+	for _, line := range strings.Split(css, "\n") {
+		if strings.HasPrefix(strings.TrimSpace(line), "nav ") || strings.HasPrefix(strings.TrimSpace(line), "nav a") {
+			t.Errorf("unscoped nav rule: %s", strings.TrimSpace(line))
+		}
+	}
+}
