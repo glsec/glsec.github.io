@@ -62,9 +62,9 @@ pre {
 .brand-mark { width: 33px; height: 40px; }
 .brand .gl { color: var(--on-slate); }
 .brand .sec { color: var(--orange); }
-nav { display: flex; gap: 22px; }
-nav a { color: var(--on-slate-muted); text-decoration: none; font-weight: 500; }
-nav a:hover, nav a[aria-current="page"] { color: var(--on-slate); box-shadow: 0 2px 0 var(--orange); }
+.top nav { display: flex; gap: 22px; }
+.top nav a { color: var(--on-slate-muted); text-decoration: none; font-weight: 500; }
+.top nav a:hover, .top nav a[aria-current="page"] { color: var(--on-slate); box-shadow: 0 2px 0 var(--orange); }
 
 .hero { background: var(--slate); color: var(--on-slate); padding: 56px 0 64px; }
 .hero h1 { font-size: clamp(2rem, 4.6vw, 3rem); line-height: 1.12; letter-spacing: -0.02em; margin: 0 0 18px; }
@@ -144,7 +144,7 @@ tbody tr:hover { background: var(--surface); }
 @media (max-width: 480px) {
   /* The links get their own row under the logo instead of overflowing. */
   .top-inner { height: auto; flex-wrap: wrap; row-gap: 6px; padding-top: 10px; padding-bottom: 8px; }
-  nav { width: 100%; justify-content: space-between; font-size: 0.95rem; }
+  .top nav { width: 100%; justify-content: space-between; font-size: 0.95rem; }
   .brand { font-size: 1.2rem; }
 }
 
