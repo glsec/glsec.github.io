@@ -80,6 +80,7 @@ func TestBuild_HomeAndOverview(t *testing.T) {
 		"ghcr.io/glsec/glsec:1.23.0",
 		"releases/download/v1.23.0/glsec_1.23.0_linux_amd64.tar.gz",
 		"/plugin install glsec@glsec",
+		"brew install glsec/tap/glsec",
 		`<a href="https://gitlab.com/explore/catalog/glsec-io/glsec">GitLab</a>`,
 		"3 rules",
 	} {
