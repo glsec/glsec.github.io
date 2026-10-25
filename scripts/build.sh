@@ -2,8 +2,8 @@
 # Copyright The glsec Authors
 # SPDX-License-Identifier: Apache-2.0
 #
-# Builds the site into _site from the latest glsec release: its docs, the
-# output of its binary on sample/.gitlab-ci.yml, and the latest GitLab
+# Builds the site into _site from the latest glsec release: its docs, its
+# rule list, the output of its binary on sample/.gitlab-ci.yml, and the latest GitLab
 # component release. Needs git, go, curl, jq and GH_TOKEN for the GitHub API.
 set -euo pipefail
 
@@ -27,4 +27,6 @@ rc=0
 (cd sample && "$work/glsec-bin" --no-color .gitlab-ci.yml) > "$work/sample.txt" || rc=$?
 [ "$rc" -eq 1 ] || { echo "glsec exited $rc on the sample" >&2; cat "$work/sample.txt" >&2; exit 1; }
 
-go run . -src "$work/glsec" -version "${tag#v}" -component "$component" -sample "$work/sample.txt" -out _site
+"$work/glsec-bin" list --format json > "$work/rules.json"
+
+go run . -src "$work/glsec" -version "${tag#v}" -component "$component" -sample "$work/sample.txt" -rules "$work/rules.json" -out _site

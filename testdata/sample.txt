@@ -1,1 +1,2 @@
 error[GL001]: <sample> & more
+  --> .gitlab-ci.yml:6:10

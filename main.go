@@ -4,7 +4,7 @@
 // Command site builds glsec.github.io from a glsec source tree: a home page,
 // the rule overview from docs/rules.md and one page per docs/rules/GLxxx.md.
 //
-//	go run . -src ../glsec -version 1.23.0 -component v1.0.25 -sample sample.txt -out _site
+//	go run . -src ../glsec -version 1.23.0 -component v1.0.25 -sample sample.txt -rules rules.json -out _site
 package main
 
 import (
@@ -63,7 +63,10 @@ type Page struct {
 	Path        string // site path, "/" or "/rules/GL001/"
 	Version     string
 	Component   string
-	Sample      string
+	Sample      []string // lines of the home page example
+	Risks       []Risk
+	Covered     int // OWASP risks with at least one rule
+	Outside     int // OWASP risks a pipeline file can't show
 	Body        template.HTML
 	Rule        *Rule
 	RuleCount   int
@@ -74,19 +77,26 @@ func main() {
 	version := flag.String("version", "", "glsec release the source tree is at, e.g. 1.23.0")
 	component := flag.String("component", "", "latest GitLab component release, e.g. v1.0.25")
 	sample := flag.String("sample", "", "file with glsec's output for the home page example")
+	rules := flag.String("rules", "", "output of glsec list --format json from the same release")
 	out := flag.String("out", "_site", "output directory")
 	flag.Parse()
-	if err := build(*src, *version, *component, *sample, *out); err != nil {
+	if err := build(Options{Src: *src, Version: *version, Component: *component, Sample: *sample, Rules: *rules, Out: *out}); err != nil {
 		fmt.Fprintln(os.Stderr, "error:", err)
 		os.Exit(1)
 	}
 }
 
-func build(src, version, component, samplePath, out string) error {
+// Options are the generator's inputs.
+type Options struct {
+	Src, Version, Component, Sample, Rules, Out string
+}
+
+func build(o Options) error {
+	src, version, component, out := o.Src, o.Version, o.Component, o.Out
 	if src == "" || !versionRe.MatchString(version) || !versionRe.MatchString(strings.TrimPrefix(component, "v")) || !strings.HasPrefix(component, "v") {
 		return errors.New("-src, -version (X.Y.Z) and -component (vX.Y.Z) are required")
 	}
-	sample, err := os.ReadFile(samplePath)
+	sample, err := os.ReadFile(o.Sample)
 	if err != nil {
 		return err
 	}
@@ -97,6 +107,10 @@ func build(src, version, component, samplePath, out string) error {
 	conv := converter{version: version}
 
 	ids, err := ruleIDs(src)
+	if err != nil {
+		return err
+	}
+	risks, covered, outside, err := loadRisks(o.Rules, ids)
 	if err != nil {
 		return err
 	}
@@ -132,8 +146,20 @@ func build(src, version, component, samplePath, out string) error {
 		Title:       "glsec: security linter for GitLab CI/CD",
 		Description: fmt.Sprintf("glsec finds security problems in .gitlab-ci.yml before they reach a runner: %d rules, offline, one binary.", len(ids)),
 		Path:        "/",
-		Sample:      string(sample),
+		Sample:      strings.Split(strings.TrimRight(string(sample), "\n"), "\n"),
+		Covered:     covered,
 	}, "home.html"); err != nil {
+		return err
+	}
+
+	if err := write(Page{
+		Title:       "OWASP Top 10 CI/CD Security Risks in GitLab · glsec",
+		Description: fmt.Sprintf("How glsec's %d rules map to the OWASP Top 10 CI/CD Security Risks for GitLab pipelines, and which risks a pipeline file can't show.", len(ids)),
+		Path:        "/owasp/",
+		Risks:       risks,
+		Covered:     covered,
+		Outside:     outside,
+	}, "owasp.html"); err != nil {
 		return err
 	}
 

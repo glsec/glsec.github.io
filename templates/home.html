@@ -11,12 +11,13 @@
         </p>
         <div class="stats">
           <span><strong>{{.RuleCount}}</strong>rules</span>
-          <span><strong>6</strong>output formats</span>
+          <a href="/owasp/"><strong>{{.Covered}}/10</strong>OWASP CI/CD risks</a>
           <span><strong>0</strong>network calls</span>
         </div>
       </div>
-      <pre class="terminal" aria-label="glsec output"><span class="prompt">$ glsec .gitlab-ci.yml</span>
-{{.Sample}}</pre>
+      <pre class="terminal" aria-label="glsec output"><span class="prompt">$ <span class="cmd">glsec .gitlab-ci.yml</span></span>
+{{range $i, $l := .Sample}}<span class="line" style="--i: {{$i}}">{{$l}}</span>
+{{end}}</pre>
     </div>
   </section>
 
