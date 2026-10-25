@@ -4,6 +4,7 @@
 package main
 
 import (
+	"fmt"
 	"html"
 	"html/template"
 	"regexp"
@@ -107,4 +108,36 @@ func ansiHTML(out string) template.HTML {
 		parts[i] = string(l)
 	}
 	return template.HTML(strings.Join(parts, "\n")) //nolint:gosec // built from ansiLines
+}
+
+// homeFindings is how many findings the home page terminal shows.
+const homeFindings = 3
+
+// findingStartRe matches the first line of a finding in glsec's text output,
+// once the colour codes are removed.
+var findingStartRe = regexp.MustCompile(`^(error|warn|info)\[`)
+
+// homeSample is the text output cut after max findings, with a last line that
+// says how many more there are and links the full report.
+func homeSample(out string, max int) []template.HTML {
+	lines := ansiLines(out)
+	plain := strings.Split(sgrRe.ReplaceAllString(out, ""), "\n")
+	var starts []int
+	for i, l := range plain {
+		if findingStartRe.MatchString(l) {
+			starts = append(starts, i)
+		}
+	}
+	if len(starts) <= max {
+		return lines
+	}
+	kept := lines[:starts[max]]
+	for len(kept) > 0 && strings.TrimSpace(string(kept[len(kept)-1])) == "" {
+		kept = kept[:len(kept)-1]
+	}
+	more, noun := len(starts)-max, "findings"
+	if more == 1 {
+		noun = "finding"
+	}
+	return append(kept, "", template.HTML(fmt.Sprintf(`<span class="more">… and %d more %s: <a href="/reports/#text">see the full report</a></span>`, more, noun))) //nolint:gosec // fixed markup and a number
 }

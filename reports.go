@@ -45,9 +45,9 @@ var reportFormats = []Report{
 		Where: "The merge request's Code Quality report on all tiers. With Premium also a Code Quality tab in the pipeline, with Ultimate inline in the merge request diff.",
 		Shot: &Screenshot{
 			Src:     "/screenshots/code-quality-mr.png",
-			Alt:     "GitLab merge request Code Quality report: Code Quality scans found 4 new findings, two Critical (mutable image tag python:latest, curl piped to sh) and two Major (pipe without pipefail, deploy job without a pipeline-source guard), each with its line in bad-pipeline.yml",
-			Caption: "The Code Quality report of a merge request on GitLab.com (Free tier) that adds a job with four findings.",
-			Link:    "https://gitlab.com/glsec-io/examples/component-code-quality/-/merge_requests/7",
+			Alt:     "GitLab merge request Code Quality report: Code Quality scans found 19 new findings. The first nine are shown: seven Critical (mutable image tag node:latest, include from the main branch, .env in artifacts, curl piped to sh, inline registry credentials, StrictHostKeyChecking disabled, Docker daemon TLS disabled) and two Major (OIDC token without a guard, set -x), each with its line in bad-pipeline.yml",
+			Caption: "The Code Quality report of a merge request on GitLab.com (Free tier) that brings in this file: 19 new findings, the first nine shown.",
+			Link:    "https://gitlab.com/glsec-io/examples/component-code-quality/-/merge_requests/9/reports/code-quality",
 		},
 		Wiring: `glsec:
   image:
@@ -76,9 +76,9 @@ var reportFormats = []Report{
       junit: glsec-junit.xml`,
 		Shot: &Screenshot{
 			Src:     "/screenshots/junit-tests.png",
-			Alt:     "GitLab pipeline Tests tab for the glsec-junit job: 5 tests, 5 failures; each failed test case is a finding, such as GL001 in job build at bad-pipeline.yml:5, GL002 and GL025 in job deploy at line 12, GL053 at line 1 and GL080 in job deploy at line 9",
-			Caption: "The Tests tab of a pipeline on GitLab.com (Free tier): every glsec finding is a failed test case.",
-			Link:    "https://gitlab.com/glsec-io/examples/docker/-/pipelines/2986926134/test_report?job_name=glsec-junit",
+			Alt:     "GitLab pipeline Tests tab for the glsec-junit job: 19 tests, 19 failures. The first nine failed test cases are shown, one per finding with its line in bad-pipeline.yml, such as GL001 in job build at line 17, GL002 in job test at line 44, GL003 at line 6 and GL008 in job secret_detection at line 49",
+			Caption: "The Tests tab of a pipeline on GitLab.com (Free tier) that scans this file: every finding is a failed test case, the first nine shown.",
+			Link:    "https://gitlab.com/glsec-io/examples/docker/-/pipelines/2986949566/test_report?job_name=glsec-junit",
 		}},
 	{Format: "sarif", Name: "SARIF",
 		Use:   "SARIF 2.1.0 with CWE, OWASP and ASVS mappings for each rule.",

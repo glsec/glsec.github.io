@@ -45,8 +45,9 @@
 {{define "reports.html"}}{{template "head" .}}
 <main class="wrap doc">
   <h1>Example reports</h1>
-  <p>Everything below is real output of glsec {{.Version}} for the same pipeline file, regenerated with every release:</p>
-  <pre><code>{{.Input}}</code></pre>
+  <p>One pipeline file and what glsec reports for it. Each output below is what glsec {{.Version}} prints for this file, regenerated with every release. The GitLab screenshots show the same file in the <a href="https://gitlab.com/glsec-io/examples">example projects</a> and are taken by hand.</p>
+  <pre class="numbered"><code>{{range .Input}}<span class="ln">{{.}}</span>
+{{end}}</code></pre>
   <nav class="toc" aria-label="Formats">{{range .Reports}}<a href="#{{.Format}}">{{.Name}}</a>{{end}}</nav>
   {{range .Reports}}
   <section class="report" id="{{.Format}}">
