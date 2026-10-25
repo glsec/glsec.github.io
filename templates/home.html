@@ -1,18 +1,26 @@
 {{define "home.html"}}{{template "head" .}}
 <main>
-  <section class="hero wrap">
-    <h1>Find the security problems in your <code>.gitlab-ci.yml</code> before a runner does.</h1>
-    <p class="lede">glsec is a static security linter for GitLab CI/CD pipelines. {{.RuleCount}} rules cover mutable images and includes, script injection through branch names and commit messages, leaked secrets, unprotected deployments and more. It runs offline as a single binary and never executes your pipeline.</p>
-    <p class="actions">
-      <a class="button" href="#install">Install</a>
-      <a class="button ghost" href="/rules/">Browse the rules</a>
-    </p>
+  <section class="hero">
+    <div class="wrap hero-grid">
+      <div>
+        <h1>Find the security problems in your <code>.gitlab-ci.yml</code> before a runner does.</h1>
+        <p class="lede">glsec is a static security linter for GitLab CI/CD pipelines. It catches mutable images and includes, script injection through branch names and commit messages, leaked secrets and unprotected deployments. It runs offline as a single binary and never executes your pipeline.</p>
+        <p class="actions">
+          <a class="button" href="#install">Install</a>
+          <a class="button ghost" href="/rules/">Browse the rules</a>
+        </p>
+        <div class="stats">
+          <span><strong>{{.RuleCount}}</strong>rules</span>
+          <span><strong>6</strong>output formats</span>
+          <span><strong>0</strong>network calls</span>
+        </div>
+      </div>
+      <pre class="terminal" aria-label="glsec output"><span class="prompt">$ glsec .gitlab-ci.yml</span>
+{{.Sample}}</pre>
+    </div>
   </section>
 
   <section class="wrap">
-    <h2>What a finding looks like</h2>
-    <pre class="terminal" aria-label="glsec output"><span class="prompt">$ glsec .gitlab-ci.yml</span>
-{{.Sample}}</pre>
     <p class="note">Every finding names the rule, the line and the job. Each rule has a page with the risk, what is flagged and a safe alternative, for example <a href="/rules/GL001/">GL001</a> and <a href="/rules/GL011/">GL011</a>.</p>
   </section>
 
