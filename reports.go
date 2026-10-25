@@ -5,6 +5,7 @@ package main
 
 import (
 	"fmt"
+	"html/template"
 	"os"
 	"path/filepath"
 	"strings"
@@ -19,7 +20,8 @@ type Report struct {
 	Where  string // where it shows up, with the GitLab tiers
 	Wiring string // a job that publishes it, if GitLab reads it as a report
 	Open   bool   // show the output expanded
-	Output string
+	Output string // as glsec printed it, with terminal colours for text
+	HTML   template.HTML
 	Shot   *Screenshot
 }
 
@@ -96,6 +98,7 @@ func loadReports(dir, version string) (string, []Report, error) {
 			return "", nil, fmt.Errorf("%s: glsec printed nothing for --format %s", dir, r.Format)
 		}
 		r.Output = out
+		r.HTML = ansiHTML(out)
 		r.Wiring = strings.ReplaceAll(r.Wiring, "{{VERSION}}", version)
 		reports = append(reports, r)
 	}

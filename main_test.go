@@ -73,7 +73,7 @@ func TestBuild_HomeAndOverview(t *testing.T) {
 	out := buildFixture(t)
 	home := read(t, filepath.Join(out, "index.html"))
 	for _, want := range []string{
-		`<span class="line" style="--i: 0">error[GL001]: &lt;sample&gt; &amp; more</span>`,
+		`<span class="line" style="--i: 0"><span class="ansi-red">error</span>[<span class="ansi-bold">GL001</span>]: &lt;sample&gt; &amp; more</span>`,
 		`<span class="line" style="--i: 1">  --&gt; .gitlab-ci.yml:6:10</span>`,
 		"<strong>3/10</strong>OWASP CI/CD risks",
 		"gitlab.com/glsec-io/glsec/glsec@v1.0.25",

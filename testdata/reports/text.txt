@@ -1,2 +1,2 @@
-error[GL001]: <sample> & more
+[31merror[0m[[1mGL001[0m]: <sample> & more
   --> .gitlab-ci.yml:6:10

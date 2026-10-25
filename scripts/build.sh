@@ -29,7 +29,10 @@ mkdir "$work/reports"
 cp sample/.gitlab-ci.yml "$work/reports/input.yml"
 for format in text table codeclimate junit sarif json; do
   rc=0
-  (cd sample && "$work/glsec-bin" --no-color --format "$format" .gitlab-ci.yml) > "$work/reports/$format.txt" || rc=$?
+  # Text keeps glsec's terminal colours; the site turns them into spans.
+  color=--no-color
+  [ "$format" = text ] && color=
+  (cd sample && FORCE_COLOR=1 "$work/glsec-bin" $color --format "$format" .gitlab-ci.yml) > "$work/reports/$format.txt" || rc=$?
   [ "$rc" -eq 1 ] || { echo "glsec --format $format exited $rc on the sample" >&2; cat "$work/reports/$format.txt" >&2; exit 1; }
 done
 

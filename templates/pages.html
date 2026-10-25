@@ -55,7 +55,7 @@
     <p class="where"><strong>Shows up in:</strong> {{.Where}}</p>
     {{with .Shot}}<figure class="shot"><a href="{{.Link}}"><img src="{{.Src}}" alt="{{.Alt}}" width="775" loading="lazy"></a><figcaption>{{.Caption}} <a href="{{.Link}}">Open the merge request</a>.</figcaption></figure>{{end}}
     {{with .Wiring}}<details><summary>Job that publishes it</summary><pre><code>{{.}}</code></pre></details>{{end}}
-    <details{{if .Open}} open{{end}}><summary>Output</summary><pre class="output"><code>{{.Output}}</code></pre></details>
+    <details{{if .Open}} open{{end}}><summary>Output</summary><pre class="output"><code>{{.HTML}}</code></pre></details>
   </section>
   {{end}}
   <p class="source">Tiers as listed in GitLab's documentation for <a href="https://docs.gitlab.com/ci/testing/code_quality/">Code Quality</a> and <a href="https://docs.gitlab.com/ci/testing/unit_test_reports/">unit test reports</a>. All flags are in the <a href="https://github.com/glsec/glsec#usage">README</a>.</p>
