@@ -42,6 +42,25 @@
 </main>
 {{template "foot" .}}{{end}}
 
+{{define "reports.html"}}{{template "head" .}}
+<main class="wrap doc">
+  <h1>Example reports</h1>
+  <p>Everything below is real output of glsec {{.Version}} for the same pipeline file, regenerated with every release:</p>
+  <pre><code>{{.Input}}</code></pre>
+  <nav class="toc" aria-label="Formats">{{range .Reports}}<a href="#{{.Format}}">{{.Name}}</a>{{end}}</nav>
+  {{range .Reports}}
+  <section class="report" id="{{.Format}}">
+    <h2>{{.Name}} <code>--format {{.Format}}</code></h2>
+    <p>{{.Use}}</p>
+    <p class="where"><strong>Shows up in:</strong> {{.Where}}</p>
+    {{with .Wiring}}<details><summary>Job that publishes it</summary><pre><code>{{.}}</code></pre></details>{{end}}
+    <details{{if .Open}} open{{end}}><summary>Output</summary><pre class="output"><code>{{.Output}}</code></pre></details>
+  </section>
+  {{end}}
+  <p class="source">Tiers as listed in GitLab's documentation for <a href="https://docs.gitlab.com/ci/testing/code_quality/">Code Quality</a> and <a href="https://docs.gitlab.com/ci/testing/unit_test_reports/">unit test reports</a>. All flags are in the <a href="https://github.com/glsec/glsec#usage">README</a>.</p>
+</main>
+{{template "foot" .}}{{end}}
+
 {{define "404.html"}}{{template "head" .}}
 <main class="wrap doc">
   <h1>Page not found</h1>

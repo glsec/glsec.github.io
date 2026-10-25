@@ -157,3 +157,14 @@ tbody tr:hover { background: var(--surface); }
 .risk-rules a { color: var(--text); text-decoration: none; }
 .risk-rules a:hover .rid, .risk-rules a:hover { color: var(--link); }
 .rid { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; color: var(--link); margin-right: 4px; }
+
+.toc { display: flex; flex-wrap: wrap; gap: 8px; margin: 20px 0 8px; }
+.toc a { background: var(--surface); border: 1px solid var(--line); border-radius: 4px; padding: 4px 10px; text-decoration: none; color: var(--text); font-size: 0.93rem; }
+.toc a:hover { border-color: var(--orange); }
+.report h2 code { font-size: 0.75em; font-weight: 500; margin-left: 6px; }
+.report .where { color: var(--muted); }
+.report .where strong { color: var(--text); }
+details { margin: 10px 0; }
+summary { cursor: pointer; font-weight: 600; color: var(--text); }
+summary:hover { color: var(--link); }
+pre.output { max-height: 520px; }

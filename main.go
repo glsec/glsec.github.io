@@ -4,7 +4,7 @@
 // Command site builds glsec.github.io from a glsec source tree: a home page,
 // the rule overview from docs/rules.md and one page per docs/rules/GLxxx.md.
 //
-//	go run . -src ../glsec -version 1.23.0 -component v1.0.25 -sample sample.txt -rules rules.json -out _site
+//	go run . -src ../glsec -version 1.23.0 -component v1.0.25 -reports reports -rules rules.json -out _site
 package main
 
 import (
@@ -64,6 +64,8 @@ type Page struct {
 	Version     string
 	Component   string
 	Sample      []string // lines of the home page example
+	Reports     []Report
+	Input       string // the file the reports are for
 	Risks       []Risk
 	Covered     int // OWASP risks with at least one rule
 	Outside     int // OWASP risks a pipeline file can't show
@@ -76,11 +78,11 @@ func main() {
 	src := flag.String("src", "", "glsec source tree, checked out at a release tag")
 	version := flag.String("version", "", "glsec release the source tree is at, e.g. 1.23.0")
 	component := flag.String("component", "", "latest GitLab component release, e.g. v1.0.25")
-	sample := flag.String("sample", "", "file with glsec's output for the home page example")
+	reports := flag.String("reports", "", "directory with glsec's output on the sample, one <format>.txt per format")
 	rules := flag.String("rules", "", "output of glsec list --format json from the same release")
 	out := flag.String("out", "_site", "output directory")
 	flag.Parse()
-	if err := build(Options{Src: *src, Version: *version, Component: *component, Sample: *sample, Rules: *rules, Out: *out}); err != nil {
+	if err := build(Options{Src: *src, Version: *version, Component: *component, Reports: *reports, Rules: *rules, Out: *out}); err != nil {
 		fmt.Fprintln(os.Stderr, "error:", err)
 		os.Exit(1)
 	}
@@ -88,7 +90,7 @@ func main() {
 
 // Options are the generator's inputs.
 type Options struct {
-	Src, Version, Component, Sample, Rules, Out string
+	Src, Version, Component, Reports, Rules, Out string
 }
 
 func build(o Options) error {
@@ -96,7 +98,7 @@ func build(o Options) error {
 	if src == "" || !versionRe.MatchString(version) || !versionRe.MatchString(strings.TrimPrefix(component, "v")) || !strings.HasPrefix(component, "v") {
 		return errors.New("-src, -version (X.Y.Z) and -component (vX.Y.Z) are required")
 	}
-	sample, err := os.ReadFile(o.Sample)
+	input, reports, err := loadReports(o.Reports, version)
 	if err != nil {
 		return err
 	}
@@ -146,9 +148,19 @@ func build(o Options) error {
 		Title:       "glsec: security linter for GitLab CI/CD",
 		Description: fmt.Sprintf("glsec finds security problems in .gitlab-ci.yml before they reach a runner: %d rules, offline, one binary.", len(ids)),
 		Path:        "/",
-		Sample:      strings.Split(strings.TrimRight(string(sample), "\n"), "\n"),
+		Sample:      strings.Split(reports[0].Output, "\n"),
 		Covered:     covered,
 	}, "home.html"); err != nil {
+		return err
+	}
+
+	if err := write(Page{
+		Title:       "Example reports · glsec",
+		Description: "What glsec's text, table, GitLab Code Quality, JUnit, SARIF and JSON output look like, and where GitLab shows each one.",
+		Path:        "/reports/",
+		Reports:     reports,
+		Input:       input,
+	}, "reports.html"); err != nil {
 		return err
 	}
 
