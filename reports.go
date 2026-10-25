@@ -78,7 +78,7 @@ var reportFormats = []Report{
 			Src:     "/screenshots/junit-tests.png",
 			Alt:     "GitLab pipeline Tests tab for the glsec-junit job: 5 tests, 5 failures; each failed test case is a finding, such as GL001 in job build at bad-pipeline.yml:5, GL002 and GL025 in job deploy at line 12, GL053 at line 1 and GL080 in job deploy at line 9",
 			Caption: "The Tests tab of a pipeline on GitLab.com (Free tier): every glsec finding is a failed test case.",
-			Link:    "https://gitlab.com/glsec-io/examples/docker/-/pipelines/2986914746/test_report?job_name=glsec-junit",
+			Link:    "https://gitlab.com/glsec-io/examples/docker/-/pipelines/2986926134/test_report?job_name=glsec-junit",
 		}},
 	{Format: "sarif", Name: "SARIF",
 		Use:   "SARIF 2.1.0 with CWE, OWASP and ASVS mappings for each rule.",
