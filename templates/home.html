@@ -35,6 +35,11 @@
         <p>From the <a href="https://gitlab.com/explore/catalog/glsec-io/glsec">CI/CD Catalog</a>. A second component reports findings in the merge request's Code Quality widget.</p>
       </div>
       <div class="card">
+        <h3>Homebrew</h3>
+<pre><code>brew install glsec/tap/glsec</code></pre>
+        <p>macOS and Linux. The <a href="https://github.com/glsec/homebrew-tap">tap</a> takes a release only after its archives pass the provenance check.</p>
+      </div>
+      <div class="card">
         <h3>Docker</h3>
 <pre><code>docker run --rm -v "$PWD:/src:ro" -w /src \
   ghcr.io/glsec/glsec:{{.Version}}</code></pre>
