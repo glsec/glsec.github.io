@@ -14,6 +14,34 @@
 </main>
 {{template "foot" .}}{{end}}
 
+{{define "owasp.html"}}{{template "head" .}}
+<main class="wrap doc">
+  <h1>OWASP Top 10 CI/CD Security Risks in GitLab</h1>
+  <p>The <a href="https://owasp.org/www-project-top-10-ci-cd-security-risks/">OWASP Top 10 CI/CD Security Risks</a> list the ways a delivery pipeline gets attacked. glsec's {{.RuleCount}} rules cover {{.Covered}} of the ten in <code>.gitlab-ci.yml</code>.{{if .Outside}} The remaining {{.Outside}} depend on settings and logs that a pipeline file doesn't contain.{{end}}</p>
+  <ol class="risks">
+  {{range .Risks}}
+    <li class="risk{{if not .Rules}} risk-outside{{end}}" id="{{lower .ID}}">
+      <div class="risk-head">
+        <span class="risk-id">{{.ID}}</span>
+        <h2><a href="{{.URL}}">{{.Name}}</a></h2>
+        <span class="risk-count">{{if .Rules}}{{len .Rules}} rule{{if ne (len .Rules) 1}}s{{end}}{{else if .Outside}}not in the pipeline file{{else}}no rule yet{{end}}</span>
+      </div>
+      {{if .Rules}}
+      <p>{{.Summary}}</p>
+      <ul class="risk-rules">
+        {{range .Rules}}<li><a href="/rules/{{.ID}}/"><span class="rid">{{.ID}}</span> {{.Description}}</a></li>
+        {{end}}
+      </ul>
+      {{else}}
+      <p>{{or .Outside .Summary}}</p>
+      {{end}}
+    </li>
+  {{end}}
+  </ol>
+  <p class="source">Category names and links are from OWASP's list. A rule can belong to more than one risk.</p>
+</main>
+{{template "foot" .}}{{end}}
+
 {{define "404.html"}}{{template "head" .}}
 <main class="wrap doc">
   <h1>Page not found</h1>

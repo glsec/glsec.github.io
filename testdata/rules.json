@@ -1,0 +1,5 @@
+[
+  {"id": "GL001", "severity": "error", "owasp": ["CICD-SEC-3"], "description": "Mutable image tag"},
+  {"id": "GL002", "severity": "warn", "owasp": ["CICD-SEC-4", "CICD-SEC-8"], "description": "Second rule"},
+  {"id": "GL011", "severity": "error", "owasp": ["CICD-SEC-3"], "description": "Remote script piped to a shell"}
+]

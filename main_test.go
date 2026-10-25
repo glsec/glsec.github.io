@@ -4,16 +4,21 @@
 package main
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
 	"testing"
 )
 
+func fixture(out string) Options {
+	return Options{Src: "testdata/src", Version: "1.23.0", Component: "v1.0.25", Sample: "testdata/sample.txt", Rules: "testdata/rules.json", Out: out}
+}
+
 func buildFixture(t *testing.T) string {
 	t.Helper()
 	out := filepath.Join(t.TempDir(), "_site")
-	if err := build("testdata/src", "1.23.0", "v1.0.25", "testdata/sample.txt", out); err != nil {
+	if err := build(fixture(out)); err != nil {
 		t.Fatal(err)
 	}
 	return out
@@ -30,7 +35,7 @@ func read(t *testing.T, path string) string {
 
 func TestBuild_Pages(t *testing.T) {
 	out := buildFixture(t)
-	for _, p := range []string{"index.html", "404.html", "rules/index.html", "rules/GL001/index.html", "rules/GL002/index.html", "style.css", "favicon.svg", "sitemap.xml", "robots.txt"} {
+	for _, p := range []string{"index.html", "404.html", "owasp/index.html", "rules/index.html", "rules/GL001/index.html", "rules/GL002/index.html", "style.css", "favicon.svg", "sitemap.xml", "robots.txt"} {
 		if _, err := os.Stat(filepath.Join(out, p)); err != nil {
 			t.Errorf("missing %s", p)
 		}
@@ -68,7 +73,9 @@ func TestBuild_HomeAndOverview(t *testing.T) {
 	out := buildFixture(t)
 	home := read(t, filepath.Join(out, "index.html"))
 	for _, want := range []string{
-		"error[GL001]: &lt;sample&gt; &amp; more",
+		`<span class="line" style="--i: 0">error[GL001]: &lt;sample&gt; &amp; more</span>`,
+		`<span class="line" style="--i: 1">  --&gt; .gitlab-ci.yml:6:10</span>`,
+		"<strong>3/10</strong>OWASP CI/CD risks",
 		"gitlab.com/glsec-io/glsec/glsec@v1.0.25",
 		"ghcr.io/glsec/glsec:1.23.0",
 		"releases/download/v1.23.0/glsec_1.23.0_linux_amd64.tar.gz",
@@ -85,14 +92,18 @@ func TestBuild_HomeAndOverview(t *testing.T) {
 }
 
 func TestBuild_Rejects(t *testing.T) {
-	for name, args := range map[string][4]string{
-		"no version":       {"testdata/src", "", "v1.0.25", "testdata/sample.txt"},
-		"bad version":      {"testdata/src", "1.23", "v1.0.25", "testdata/sample.txt"},
-		"bad component":    {"testdata/src", "1.23.0", "1.0.25", "testdata/sample.txt"},
-		"no sample":        {"testdata/src", "1.23.0", "v1.0.25", "testdata/missing.txt"},
-		"no rules in tree": {"testdata", "1.23.0", "v1.0.25", "testdata/sample.txt"},
+	for name, edit := range map[string]func(*Options){
+		"no version":       func(o *Options) { o.Version = "" },
+		"bad version":      func(o *Options) { o.Version = "1.23" },
+		"bad component":    func(o *Options) { o.Component = "1.0.25" },
+		"no sample":        func(o *Options) { o.Sample = "testdata/missing.txt" },
+		"no rule list":     func(o *Options) { o.Rules = "testdata/missing.json" },
+		"rule list broken": func(o *Options) { o.Rules = "testdata/sample.txt" },
+		"no rules in tree": func(o *Options) { o.Src = "testdata" },
 	} {
-		if err := build(args[0], args[1], args[2], args[3], filepath.Join(t.TempDir(), "o")); err == nil {
+		o := fixture(filepath.Join(t.TempDir(), "o"))
+		edit(&o)
+		if err := build(o); err == nil {
 			t.Errorf("%s: build succeeded", name)
 		}
 	}
@@ -109,7 +120,13 @@ func TestBuild_RejectsBadTitle(t *testing.T) {
 	if err := os.WriteFile(filepath.Join(src, "docs", "rules", "GL001.md"), []byte("# GL002 — Wrong id\n"), 0o644); err != nil {
 		t.Fatal(err)
 	}
-	err := build(src, "1.23.0", "v1.0.25", "testdata/sample.txt", filepath.Join(t.TempDir(), "o"))
+	rules := filepath.Join(src, "rules.json")
+	if err := os.WriteFile(rules, []byte(`[{"id":"GL001","owasp":["CICD-SEC-3"]}]`), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	o := fixture(filepath.Join(t.TempDir(), "o"))
+	o.Src, o.Rules = src, rules
+	err := build(o)
 	if err == nil || !strings.Contains(err.Error(), "first line") {
 		t.Errorf("err = %v", err)
 	}
@@ -146,5 +163,66 @@ func TestCheckLinks(t *testing.T) {
 	err := checkLinks(out)
 	if err == nil || !strings.Contains(err.Error(), "/rules/GL999/") || strings.Contains(err.Error(), "install") {
 		t.Errorf("err = %v", err)
+	}
+}
+
+func TestBuild_OWASPPage(t *testing.T) {
+	page := read(t, filepath.Join(buildFixture(t), "owasp", "index.html"))
+	for _, want := range []string{
+		"rules cover 3 of the ten",
+		"The remaining 2 depend on settings",
+		"no rule yet",
+		`id="cicd-sec-3"`,
+		`<a href="/rules/GL001/"><span class="rid">GL001</span> Mutable image tag</a>`,
+		`<a href="/rules/GL011/"><span class="rid">GL011</span>`,
+		"2 rules",
+		"1 rule<",
+		`href="https://owasp.org/www-project-top-10-ci-cd-security-risks/CICD-SEC-10-Insufficient-Logging-And-Visibility"`,
+		"not in the pipeline file",
+		`aria-current="page">OWASP</a>`,
+	} {
+		if !strings.Contains(page, want) {
+			t.Errorf("OWASP page lacks %s", want)
+		}
+	}
+	// GL002 is listed under both of its risks.
+	if n := strings.Count(page, `href="/rules/GL002/"`); n != 2 {
+		t.Errorf("GL002 is listed %d times, want 2", n)
+	}
+}
+
+func TestLoadRisks_Rejects(t *testing.T) {
+	ids := []string{"GL001", "GL002"}
+	for name, body := range map[string]string{
+		"unknown category":                 `[{"id":"GL001","owasp":["CICD-SEC-11"]},{"id":"GL002","owasp":["CICD-SEC-3"]}]`,
+		"no category":                      `[{"id":"GL001","owasp":[]},{"id":"GL002","owasp":["CICD-SEC-3"]}]`,
+		"rule without doc":                 `[{"id":"GL001","owasp":["CICD-SEC-3"]},{"id":"GL002","owasp":["CICD-SEC-3"]},{"id":"GL003","owasp":["CICD-SEC-3"]}]`,
+		"documented, unlisted":             `[{"id":"GL001","owasp":["CICD-SEC-3"]}]`,
+		"rules for a risk without summary": `[{"id":"GL001","owasp":["CICD-SEC-2"]},{"id":"GL002","owasp":["CICD-SEC-3"]}]`,
+	} {
+		path := filepath.Join(t.TempDir(), "rules.json")
+		if err := os.WriteFile(path, []byte(body), 0o644); err != nil {
+			t.Fatal(err)
+		}
+		if _, _, _, err := loadRisks(path, ids); err == nil {
+			t.Errorf("%s: accepted", name)
+		}
+	}
+}
+
+func TestOWASPRisks(t *testing.T) {
+	if len(owaspRisks) != 10 {
+		t.Fatalf("%d risks, want 10", len(owaspRisks))
+	}
+	for i, r := range owaspRisks {
+		if want := fmt.Sprintf("CICD-SEC-%d", i+1); r.ID != want {
+			t.Errorf("risk %d is %s, want %s", i, r.ID, want)
+		}
+		if want := fmt.Sprintf("%sCICD-SEC-%02d-", owaspBase, i+1); !strings.HasPrefix(r.URL, want) {
+			t.Errorf("%s: URL %s", r.ID, r.URL)
+		}
+		if (r.Summary == "") == (r.Outside == "") {
+			t.Errorf("%s needs exactly one of Summary and Outside", r.ID)
+		}
 	}
 }

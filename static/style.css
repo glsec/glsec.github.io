@@ -81,12 +81,29 @@ nav a:hover, nav a[aria-current="page"] { color: var(--on-slate); box-shadow: 0 
 .button.ghost { background: transparent; color: var(--on-slate); border-color: var(--on-slate-muted); }
 .stats { display: flex; flex-wrap: wrap; gap: 28px; margin-top: 32px; color: var(--on-slate-muted); font-size: 0.95rem; }
 .stats strong { display: block; color: var(--on-slate); font-size: 1.6rem; line-height: 1.2; }
+.stats a { color: inherit; text-decoration: none; }
+.stats a strong { color: var(--orange); }
 
 .terminal {
   background: var(--slate-deep); color: #e6eaee; border: 1px solid #3a4652; border-left: 3px solid var(--orange);
-  white-space: pre; font-size: 0.78rem; margin: 0; max-height: 420px;
+  white-space: pre-wrap; overflow-wrap: anywhere; font-size: 0.78rem; margin: 0;
 }
 .terminal .prompt { color: #9aa6b2; }
+.terminal .line { display: inline; }
+
+/* The command is typed, then the findings appear line by line. Without
+   animation support, or with reduced motion, everything is simply shown. */
+@media (prefers-reduced-motion: no-preference) {
+  .terminal .cmd {
+    display: inline-block; vertical-align: bottom; overflow: hidden; white-space: pre;
+    box-sizing: content-box; width: 20ch; border-right: 0.6em solid transparent;
+    animation: type 0.9s steps(20) 0.3s both, caret 0.5s step-end 0.3s 3;
+  }
+  .terminal .line { animation: appear 0.15s ease-out both; animation-delay: calc(1.4s + var(--i) * 45ms); }
+}
+@keyframes type { from { width: 0; } to { width: 20ch; } }
+@keyframes caret { 50% { border-right-color: #9aa6b2; } }
+@keyframes appear { from { opacity: 0; } to { opacity: 1; } }
 
 main > section { padding: 8px 0 24px; }
 h2 { font-size: 1.5rem; margin: 48px 0 14px; letter-spacing: -0.01em; }
@@ -125,3 +142,18 @@ tbody tr:hover { background: var(--surface); }
   nav { gap: 14px; font-size: 0.95rem; }
   .brand { font-size: 1.2rem; }
 }
+
+.risks { list-style: none; padding: 0; margin: 28px 0 0; display: grid; gap: 14px; }
+.risk { background: var(--surface); border: 1px solid var(--line); border-left: 4px solid var(--orange); border-radius: 4px; padding: 16px 20px; }
+.risk-outside { border-left-color: var(--line); }
+.risk-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 12px; }
+.doc .risk h2 { border: none; padding: 0; margin: 0; font-size: 1.15rem; flex: 1 1 260px; }
+.risk h2 a { color: var(--text); text-decoration: none; }
+.risk h2 a:hover { text-decoration: underline; }
+.risk-id { background: var(--slate); color: var(--orange); font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.8rem; padding: 2px 8px; border-radius: 3px; }
+.risk-count { color: var(--muted); font-size: 0.9rem; }
+.risk p { margin: 8px 0; max-width: none; }
+.risk-rules { list-style: none; padding: 0; margin: 10px 0 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 4px 20px; font-size: 0.93rem; }
+.risk-rules a { color: var(--text); text-decoration: none; }
+.risk-rules a:hover .rid, .risk-rules a:hover { color: var(--link); }
+.rid { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; color: var(--link); margin-right: 4px; }
