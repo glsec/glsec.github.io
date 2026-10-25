@@ -79,6 +79,7 @@ func TestBuild_HomeAndOverview(t *testing.T) {
 		"gitlab.com/glsec-io/glsec/glsec@v1.0.25",
 		"ghcr.io/glsec/glsec:1.23.0",
 		"releases/download/v1.23.0/glsec_1.23.0_linux_amd64.tar.gz",
+		"/plugin install glsec@glsec",
 		"3 rules",
 	} {
 		if !strings.Contains(home, want) {
