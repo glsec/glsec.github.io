@@ -40,6 +40,11 @@
         <p>macOS and Linux. The <a href="https://github.com/glsec/homebrew-tap">tap</a> takes a release only after its archives pass the provenance check.</p>
       </div>
       <div class="card">
+        <h3>aqua</h3>
+<pre><code>aqua g -i glsec/glsec && aqua i</code></pre>
+        <p>In the <a href="https://aquaproj.github.io/">aqua</a> standard registry from v4.578.0 on. aqua checks the download against <code>checksums.txt</code> and the release's provenance.</p>
+      </div>
+      <div class="card">
         <h3>Docker</h3>
 <pre><code>docker run --rm -v "$PWD:/src:ro" -w /src \
   ghcr.io/glsec/glsec:{{.Version}}</code></pre>
