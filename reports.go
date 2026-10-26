@@ -20,7 +20,7 @@ type Report struct {
 	Where  string // where it shows up, with the GitLab tiers
 	Wiring string // a job that publishes it, if GitLab reads it as a report
 	Open   bool   // show the output expanded
-	Output string // as glsec printed it, with terminal colours for text
+	Output string // as glsec printed it, with terminal colours for text and table
 	HTML   template.HTML
 	Shot   *Screenshot
 }
@@ -38,7 +38,7 @@ var reportFormats = []Report{
 		Use:   "The default. Every finding with the rule, file, line, job and the source line, for the job log or a terminal.",
 		Where: "The job log."},
 	{Format: "table", Name: "Table", Open: true,
-		Use:   "One aligned row per finding, for a quick overview of many findings.",
+		Use:   "One aligned row per finding, for a quick overview of many findings. The severity is coloured in a terminal.",
 		Where: "The job log."},
 	{Format: "codeclimate", Name: "GitLab Code Quality",
 		Use:   "The Code Climate JSON that GitLab's Code Quality report reads.",
