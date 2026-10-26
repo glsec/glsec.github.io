@@ -54,7 +54,7 @@
     <h2>{{.Name}} <code>--format {{.Format}}</code></h2>
     <p>{{.Use}}</p>
     <p class="where"><strong>Shows up in:</strong> {{.Where}}</p>
-    {{with .Shot}}<figure class="shot"><a href="{{.Link}}"><img src="{{.Src}}" alt="{{.Alt}}" loading="lazy"></a><figcaption>{{.Caption}} <a href="{{.Link}}">Open it on GitLab</a>.</figcaption></figure>{{end}}
+    {{with .Shot}}<figure class="shot"><a href="{{.Link}}"><img src="{{.Src}}" alt="{{.Alt}}" loading="lazy"></a><figcaption>{{.Caption}} <a href="{{.Link}}">Open it on {{.Site}}</a>.</figcaption></figure>{{end}}
     {{with .Wiring}}<details><summary>Job that publishes it</summary><pre><code>{{.}}</code></pre></details>{{end}}
     <details{{if .Open}} open{{end}}><summary>Output</summary><pre class="output"><code>{{.HTML}}</code></pre></details>
   </section>
