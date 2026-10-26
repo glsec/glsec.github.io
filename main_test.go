@@ -82,6 +82,7 @@ func TestBuild_HomeAndOverview(t *testing.T) {
 		"/plugin install glsec@glsec",
 		"brew install glsec/tap/glsec",
 		"aqua g -i glsec/glsec",
+		"mise use github:glsec/glsec",
 		`<a href="https://gitlab.com/explore/catalog/glsec-io/glsec">GitLab</a>`,
 		"3 rules",
 	} {

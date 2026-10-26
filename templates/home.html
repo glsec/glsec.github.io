@@ -35,14 +35,11 @@
         <p>From the <a href="https://gitlab.com/explore/catalog/glsec-io/glsec">CI/CD Catalog</a>. A second component reports findings in the merge request's Code Quality widget.</p>
       </div>
       <div class="card">
-        <h3>Homebrew</h3>
-<pre><code>brew install glsec/tap/glsec</code></pre>
-        <p>macOS and Linux. The <a href="https://github.com/glsec/homebrew-tap">tap</a> takes a release only after its archives pass the provenance check.</p>
-      </div>
-      <div class="card">
-        <h3>aqua</h3>
-<pre><code>aqua g -i glsec/glsec && aqua i</code></pre>
-        <p>In the <a href="https://aquaproj.github.io/">aqua</a> standard registry from v4.578.0 on. aqua checks the download against <code>checksums.txt</code> and the release's provenance.</p>
+        <h3>Package managers</h3>
+<pre><code>brew install glsec/tap/glsec
+aqua g -i glsec/glsec && aqua i
+mise use github:glsec/glsec</code></pre>
+        <p>Homebrew, <a href="https://aquaproj.github.io/">aqua</a> and <a href="https://mise.jdx.dev/">mise</a>. The <a href="https://github.com/glsec/homebrew-tap">Homebrew tap</a> and aqua install a release only after its provenance check passes.</p>
       </div>
       <div class="card">
         <h3>Docker</h3>
