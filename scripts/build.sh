@@ -29,9 +29,10 @@ mkdir "$work/reports"
 cp sample/bad-pipeline.yml "$work/reports/input.yml"
 for format in text table codeclimate junit sarif json; do
   rc=0
-  # Text keeps glsec's terminal colours; the site turns them into spans.
+  # Text and table keep glsec's terminal colours; the site turns them into
+  # spans. The machine-readable formats have none.
   color=--no-color
-  [ "$format" = text ] && color=
+  case "$format" in text | table) color= ;; esac
   (cd sample && FORCE_COLOR=1 "$work/glsec-bin" $color --format "$format" bad-pipeline.yml) > "$work/reports/$format.txt" || rc=$?
   [ "$rc" -eq 1 ] || { echo "glsec --format $format exited $rc on the sample" >&2; cat "$work/reports/$format.txt" >&2; exit 1; }
 done
