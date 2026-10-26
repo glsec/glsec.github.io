@@ -31,6 +31,14 @@ type Screenshot struct {
 	Src, Alt, Caption, Link string
 }
 
+// Site names where the screenshot's link goes, for "Open it on …".
+func (s Screenshot) Site() string {
+	if strings.HasPrefix(s.Link, "https://github.com/") {
+		return "GitHub"
+	}
+	return "GitLab"
+}
+
 // reportFormats are glsec's output formats in the order the page shows them.
 // The tier statements follow GitLab's documentation for each report type.
 var reportFormats = []Report{
@@ -81,8 +89,14 @@ var reportFormats = []Report{
 			Link:    "https://gitlab.com/glsec-io/examples/docker/-/pipelines/2986949566/test_report?job_name=glsec-junit",
 		}},
 	{Format: "sarif", Name: "SARIF",
-		Use:   "SARIF 2.1.0 with CWE, OWASP and ASVS mappings for each rule.",
-		Where: "GitHub Code Scanning and other tools that read SARIF."},
+		Use:   "SARIF 2.1.0. Each rule has a title, help with a safe alternative, CWE tags, a security severity and its CWE, OWASP and ASVS mappings.",
+		Where: "GitHub Code Scanning and other tools that read SARIF, such as the SARIF Viewer for VS Code.",
+		Shot: &Screenshot{
+			Src:     "/screenshots/code-scanning-pr.png",
+			Alt:     "GitHub pull request, Files changed: glsec findings from code scanning as comments on the changed lines of bad-pipeline.yml. Shown are three: Missing workflow:rules allows pipelines from untrusted sources (Medium) at line 1, Unpinned include ref (High) at the include of platform/ci-templates with ref main, and Hardcoded registry credentials in DOCKER_AUTH_CONFIG (High) at line 11",
+			Caption: "Code scanning annotations in a GitHub pull request that brings in this file, the first three of 19.",
+			Link:    "https://github.com/glsec/example-github-code-scanning/pull/2/files",
+		}},
 	{Format: "json", Name: "JSON",
 		Use:   "One object per finding with its OWASP and ASVS mappings, for scripts and dashboards.",
 		Where: "Wherever you send it."},
