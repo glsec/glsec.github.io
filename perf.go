@@ -32,8 +32,10 @@ type benchRecord struct {
 	Version      string `json:"version"`
 	Rules        *int   `json:"rules"`
 	InputVersion int    `json:"input_version"`
+	Ref          string `json:"ref"` // schema 2: the release the ratio compares against
 	CLI          struct {
-		MedianMS float64 `json:"median_ms"`
+		MedianMS float64  `json:"median_ms"`
+		Ratio    *float64 `json:"ratio"` // schema 2: median_ms / the median of ref, same job
 	} `json:"cli"`
 	GoBench map[string]struct {
 		Allocs float64 `json:"allocs_per_op"`
@@ -51,6 +53,16 @@ type PerfPoint struct {
 	Rules   int // 0 when the version has no glsec list
 	CPU     string
 	Allocs  float64 // BenchmarkRules allocs/op, 0 without Go benchmarks
+	Ratio   float64 // time relative to Ref, measured in the same job; 0 without
+	Ref     string
+}
+
+// RatioText is the ratio as the page writes it, "0.51 × v1.24.1".
+func (p PerfPoint) RatioText() string {
+	if p.Ratio == 0 {
+		return ""
+	}
+	return strconv.FormatFloat(p.Ratio, 'f', 2, 64) + " × " + p.Ref
 }
 
 // Short is the abbreviated commit.
@@ -69,13 +81,18 @@ func (p PerfPoint) URL() string { return repoURL + "/commit/" + p.Commit }
 
 // Perf is everything the performance page shows.
 type Perf struct {
-	Points []PerfPoint
-	Time   template.HTML // the scan time chart
-	Allocs template.HTML // the allocation chart, empty with fewer than two points
-	Latest PerfPoint
-	First  PerfPoint // the first point with a rule count
+	Points []PerfPoint   // every release and commit, for the table
+	Time   template.HTML // the releases' scan time, all from one backfill run
+	Ratio  template.HTML // commits since the latest release relative to it, empty without any
+	Allocs template.HTML // allocations of the latest commits, empty with fewer than two
+	Latest PerfPoint     // the latest release
+	Commit *PerfPoint    // the latest commit with a ratio, nil without
+	First  PerfPoint     // the first release with a rule count
 	Start  string
 }
+
+// maxAllocPoints caps the allocation chart; older commits stay in the table.
+const maxAllocPoints = 60
 
 type tagRef struct {
 	Name string `json:"name"`
@@ -123,6 +140,9 @@ func loadPerf(benchPath, tagsPath string) (*Perf, error) {
 		if b, ok := r.GoBench["BenchmarkRules"]; ok {
 			p.Allocs = b.Allocs
 		}
+		if r.CLI.Ratio != nil && *r.CLI.Ratio > 0 && releaseTagRe.MatchString(r.Ref) {
+			p.Ratio, p.Ref = *r.CLI.Ratio, r.Ref
+		}
 		if p.Release != "" && versionKey(p.Release) < start {
 			continue
 		}
@@ -148,14 +168,30 @@ func loadPerf(benchPath, tagsPath string) (*Perf, error) {
 	if points[0].Release == "" {
 		return nil, fmt.Errorf("%s: the history must start with a release", benchPath)
 	}
-	p := &Perf{Points: points, Latest: points[len(points)-1], Start: perfStart}
+	p := &Perf{Points: points, Start: perfStart}
+	var releases, sinceRelease, allocs []PerfPoint
 	for _, pt := range points {
+		switch {
+		case pt.Release != "":
+			releases = append(releases, pt)
+			sinceRelease = nil
+		case pt.Ratio > 0:
+			sinceRelease = append(sinceRelease, pt)
+		}
+		if pt.Release == "" && pt.Allocs > 0 {
+			allocs = append(allocs, pt)
+		}
 		if p.First.Rules == 0 && pt.Rules > 0 {
 			p.First = pt
 		}
 	}
-	p.Time = timeChart(p.Points)
-	p.Allocs = allocChart(p.Points)
+	p.Latest = releases[len(releases)-1]
+	if n := len(sinceRelease); n > 0 {
+		p.Commit = &sinceRelease[n-1]
+	}
+	p.Time = timeChart(releases)
+	p.Ratio = ratioChart(sinceRelease)
+	p.Allocs = allocChart(allocs[max(0, len(allocs)-maxAllocPoints):])
 	return p, nil
 }
 
@@ -205,33 +241,42 @@ const (
 )
 
 func timeChart(points []PerfPoint) template.HTML {
-	return chart(points, "time", "Scan time", 1,
+	return chart(points, "time", "Scan time", 1, 0, 0,
 		func(p PerfPoint) float64 { return p.MS },
 		func(p PerfPoint) string { return thousands(p.MS) + " ms" })
 }
 
-// allocChart is empty until two commits have Go benchmark results.
-func allocChart(points []PerfPoint) template.HTML {
-	var with []PerfPoint
-	for _, p := range points {
-		if p.Allocs > 0 {
-			with = append(with, p)
-		}
-	}
-	if len(with) < 2 {
+// ratioChart shows the commits since the latest release against it, on a
+// scale that reaches at least ratioTop so the charts read alike over time.
+func ratioChart(points []PerfPoint) template.HTML {
+	if len(points) == 0 {
 		return ""
 	}
-	return chart(with, "allocs", "Allocations", 1e6,
+	return chart(points, "ratio", "Time relative to the release", 1, ratioTop, 1,
+		func(p PerfPoint) float64 { return p.Ratio },
+		func(p PerfPoint) string { return p.RatioText() + " (" + thousands(p.MS) + " ms)" })
+}
+
+// ratioTop is the least top of the ratio chart's scale.
+const ratioTop = 1.5
+
+// allocChart is empty until two commits have Go benchmark results.
+func allocChart(points []PerfPoint) template.HTML {
+	if len(points) < 2 {
+		return ""
+	}
+	return chart(points, "allocs", "Allocations", 1e6, 0, 0,
 		func(p PerfPoint) float64 { return p.Allocs },
 		func(p PerfPoint) string { return thousands(p.Allocs) + " allocations" })
 }
 
 // chart draws points as an SVG line chart. x is the order of the
-// measurements, so releases a day apart don't pile up; y starts at zero.
+// measurements, so releases a day apart don't pile up; y starts at zero and
+// reaches at least minTop. A non-zero refLine draws a reference at that value.
 // Every dot links to its commit with a native tooltip, and release markers are
 // named where there is room.
-func chart(points []PerfPoint, id, title string, unit float64, value func(PerfPoint) float64, describe func(PerfPoint) string) template.HTML {
-	maxV := 0.0
+func chart(points []PerfPoint, id, title string, unit, minTop, refLine float64, value func(PerfPoint) float64, describe func(PerfPoint) string) template.HTML {
+	maxV := minTop
 	for _, p := range points {
 		maxV = math.Max(maxV, value(p)/unit)
 	}
@@ -253,11 +298,26 @@ func chart(points []PerfPoint, id, title string, unit float64, value func(PerfPo
 		fmt.Fprintf(&b, `<line class="perf-grid" x1="%g" x2="%g" y1="%.1f" y2="%.1f"/>`, padL, chartW-padR, yy, yy)
 		fmt.Fprintf(&b, `<text class="perf-axis" x="%g" y="%.1f" text-anchor="end" dy="0.32em">%s</text>`, padL-8, yy, thousands(v))
 	}
+	if refLine > 0 {
+		yy := padT + plotH*(1-refLine/top)
+		fmt.Fprintf(&b, `<line class="perf-ref" x1="%g" x2="%g" y1="%.1f" y2="%.1f"/>`, padL, chartW-padR, yy, yy)
+	}
 
 	var releases []int
 	for i, p := range points {
 		if p.Release != "" {
 			releases = append(releases, i)
+		}
+	}
+	// A chart of commits only names its first and last date instead.
+	if len(releases) == 0 {
+		ends := []int{0}
+		if len(points) > 1 {
+			ends = append(ends, len(points)-1)
+		}
+		for _, i := range ends {
+			xx, yy := x(i), padT+plotH+14
+			fmt.Fprintf(&b, `<text class="perf-axis" x="%.1f" y="%g" text-anchor="end" transform="rotate(-40 %.1f %g)">%s</text>`, xx, yy, xx, yy, points[i].Date)
 		}
 	}
 	every := max(1, int(math.Ceil(float64(len(releases))/maxTagLabels)))

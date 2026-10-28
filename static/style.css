@@ -209,12 +209,13 @@ pre.numbered .ln::before {
 .perf-legend { color: var(--muted); font-size: 0.9rem; margin: 0 0 4px; }
 .perf-key { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin: 0 6px 0 14px; vertical-align: -1px; }
 .perf-key:first-child { margin-left: 0; }
-.perf-key-release { background: var(--perf-release); }
 .perf-key-main { border: 2px solid var(--perf-main); background: var(--bg); width: 6px; height: 6px; }
 .perf-scroll { overflow-x: auto; }
 .perf-chart { display: block; width: 100%; height: auto; overflow: visible; }
 .perf-grid { stroke: var(--line); stroke-width: 1; }
 .perf-marker { stroke: var(--line); stroke-width: 1; stroke-dasharray: 2 3; }
+.perf-ref { stroke: var(--muted); stroke-width: 1.5; stroke-dasharray: 6 4; }
+.perf-key-ref { width: 16px; height: 0; border-radius: 0; border-top: 2px dashed var(--muted); vertical-align: 3px; }
 .perf-axis { fill: var(--muted); font-size: 12px; font-family: inherit; }
 .perf-line { fill: none; stroke: var(--muted); stroke-width: 2; stroke-linejoin: round; opacity: 0.6; }
 .perf-release { fill: var(--perf-release); stroke: var(--bg); stroke-width: 2; }

@@ -21,28 +21,87 @@ func TestLoadPerf(t *testing.T) {
 	for _, pt := range p.Points {
 		got = append(got, pt.Label()+"="+thousands(pt.MS))
 	}
-	if want := "v1.0.0=397 v1.3.0=492 v1.24.1=1,799 0000000=946"; strings.Join(got, " ") != want {
+	if want := "v1.0.0=397 v1.3.0=492 v1.24.1=1,799 0000000=946 0000000=1,113 0000000=700"; strings.Join(got, " ") != want {
 		t.Errorf("points %q, want %q", strings.Join(got, " "), want)
 	}
-	if p.Latest.CPU != "CPU A" || p.Latest.Release != "" {
-		t.Errorf("latest = %+v, want the backfill measurement of commit 5", p.Latest)
+	if p.Latest.Release != "v1.24.1" {
+		t.Errorf("latest release = %q, want v1.24.1", p.Latest.Release)
+	}
+	if p.Commit == nil || p.Commit.Commit[39:] != "8" || p.Commit.RatioText() != "0.49 × v1.24.1" {
+		t.Errorf("latest commit with a ratio = %+v, want commit 8 at 0.49 × v1.24.1", p.Commit)
 	}
 	if p.First.Label() != "v1.3.0" || p.First.Rules != 64 {
 		t.Errorf("first with rules = %s/%d, want v1.3.0/64", p.First.Label(), p.First.Rules)
 	}
-	svg := string(p.Time)
+
+	// The time chart holds the releases only.
+	times := string(p.Time)
 	for _, want := range []string{
 		`href="https://github.com/glsec/glsec/commit/0000000000000000000000000000000000000004"`,
 		`<title>v1.24.1 · 2026-10-26 · 1,799 ms · 89 rules · CPU A</title>`,
-		`class="perf-release"`, `class="perf-main"`, `class="perf-marker"`, `>v1.24.1</text>`,
+		`class="perf-release"`, `class="perf-marker"`, `>v1.24.1</text>`,
 	} {
-		if !strings.Contains(svg, want) {
+		if !strings.Contains(times, want) {
 			t.Errorf("time chart lacks %s", want)
 		}
 	}
-	// One commit with Go benchmarks: no allocation chart yet.
-	if p.Allocs != "" {
-		t.Error("allocation chart drawn for a single commit")
+	if strings.Contains(times, "perf-main") {
+		t.Error("time chart shows a main commit")
+	}
+
+	// The ratio chart holds the commits with a ratio since v1.24.1, with the
+	// 1.0 line and a scale up to at least 1.5; commit 5 (schema 1) has none.
+	ratio := string(p.Ratio)
+	for _, want := range []string{
+		`class="perf-ref"`, `>1.5</text>`, `>2026-10-29</text>`, `>2026-10-30</text>`,
+		`<title>0000000 · 2026-10-29 · 0.51 × v1.24.1 (1,113 ms) · 89 rules · CPU C</title>`,
+		`<title>0000000 · 2026-10-30 · 0.49 × v1.24.1 (700 ms) · 89 rules · CPU B</title>`,
+	} {
+		if !strings.Contains(ratio, want) {
+			t.Errorf("ratio chart lacks %s", want)
+		}
+	}
+	if strings.Count(ratio, `class="perf-main"`) != 2 {
+		t.Errorf("ratio chart has %d commits, want 2", strings.Count(ratio, `class="perf-main"`))
+	}
+
+	// Commits 5, 7 and 8 have Go benchmark results.
+	if n := strings.Count(string(p.Allocs), `class="perf-main"`); n != 3 {
+		t.Errorf("allocation chart has %d points, want 3", n)
+	}
+}
+
+// Before the first schema 2 record there is no ratio chart and no latest
+// commit to name.
+func TestLoadPerf_NoRatioYet(t *testing.T) {
+	dir := t.TempDir()
+	bench, tags := filepath.Join(dir, "bench.jsonl"), filepath.Join(dir, "tags.json")
+	records := `{"kind":"release","commit":"aaa","date":"2026-10-28T00:00:00Z","input_version":1,"cli":{"median_ms":1}}` + "\n" +
+		`{"kind":"main","commit":"bbb","date":"2026-10-29T00:00:00Z","input_version":1,"cli":{"median_ms":2}}` + "\n"
+	if err := os.WriteFile(bench, []byte(records), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(tags, []byte(`[{"name":"v1.0.0","sha":"aaa"}]`), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	p, err := loadPerf(bench, tags)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if p.Ratio != "" || p.Commit != nil || p.Allocs != "" {
+		t.Errorf("ratio chart, latest commit or allocation chart without data: %+v", p)
+	}
+	if len(p.Points) != 2 {
+		t.Errorf("table has %d rows, want 2", len(p.Points))
+	}
+	out := filepath.Join(dir, "_site")
+	o := fixture(out)
+	o.Bench, o.Tags = bench, tags
+	if err := build(o); err != nil {
+		t.Fatal(err)
+	}
+	if page := read(t, filepath.Join(out, "performance", "index.html")); strings.Contains(page, "the chart shows the ratio") {
+		t.Error("ratio explanation without a ratio chart")
 	}
 }
 
@@ -105,8 +164,9 @@ func TestNiceStepAndThousands(t *testing.T) {
 func TestBuild_PerformancePage(t *testing.T) {
 	page := read(t, filepath.Join(buildFixture(t), "performance", "index.html"))
 	for _, want := range []string{
-		`<svg class="perf-chart"`, `Every release since v1.0.0`, `from 64 rules in v1.3.0 to 89 now`,
-		`aria-current="page">Performance`, `and get their own chart once there are two`,
+		`<svg class="perf-chart"`, `Every release since v1.0.0`, `from 64 rules in v1.3.0 to 89 in v1.24.1`,
+		`aria-current="page">Performance`, `Commits on <code>main</code> since v1.24.1`,
+		`The latest commit, 0000000, takes 0.49 × v1.24.1.`, `<td class="num">0.51 × v1.24.1</td>`,
 		`<td><a href="https://github.com/glsec/glsec/commit/0000000000000000000000000000000000000002">v1.0.0</a></td>`,
 	} {
 		if !strings.Contains(page, want) {
