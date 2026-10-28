@@ -63,6 +63,37 @@
 </main>
 {{template "foot" .}}{{end}}
 
+{{define "performance.html"}}{{template "head" .}}
+<main class="wrap doc">
+  <h1>Performance</h1>
+  {{with .Perf}}
+  <p>How long glsec takes to scan one large pipeline: 2,000 jobs with <code>extends:</code> and <code>!reference</code> chains, anchors and long scripts, about 650 KB, far bigger than real pipelines so that slow code shows. Every release since v{{.Start}} and every change to <code>main</code> is measured on the same file. Each dot is the median of seven runs and links to its commit; hover for the details. The latest, {{.Latest.Label}}, took {{.Latest.MS | thousands}} ms.</p>
+  <figure class="perf">
+    <figcaption>Scan time, ms</figcaption>
+    <p class="perf-legend"><span class="perf-key perf-key-release"></span>Release <span class="perf-key perf-key-main"></span>Commit on <code>main</code></p>
+    <div class="perf-scroll">{{.Time}}</div>
+  </figure>
+  {{if .Allocs}}
+  <figure class="perf">
+    <figcaption>Allocations per scan, millions (<code>BenchmarkRules</code>)</figcaption>
+    <div class="perf-scroll">{{.Allocs}}</div>
+  </figure>
+  {{end}}
+  <p>The time grows with the rules: each release checks more{{if .First.Rules}}, from {{.First.Rules}} rules in {{.First.Label}} to {{.Latest.Rules}} now{{end}}. The runs happen on shared GitHub runners whose speed varies by 10 to 30% between jobs, more when the CPU model differs, so compare neighbouring dots rather than single steps. Allocations don't depend on the machine; they are recorded for commits on <code>main</code>{{if not .Allocs}} and get their own chart once there are two{{end}}.</p>
+  <details>
+    <summary>All values</summary>
+    <table class="perf-table">
+      <thead><tr><th>Release or commit</th><th>Date</th><th>Scan time</th><th>Rules</th><th>CPU</th></tr></thead>
+      <tbody>{{range .Points}}
+        <tr><td><a href="{{.URL}}">{{.Label}}</a></td><td>{{.Date}}</td><td class="num">{{.MS | thousands}} ms</td><td class="num">{{if .Rules}}{{.Rules}}{{end}}</td><td>{{.CPU}}</td></tr>{{end}}
+      </tbody>
+    </table>
+  </details>
+  <p class="source">Measured by the <a href="https://github.com/glsec/glsec/blob/main/.github/workflows/benchmark-history.yml">benchmark history workflow</a>; the records and the input are on the <a href="https://github.com/glsec/glsec/tree/benchmarks">benchmarks branch</a>.</p>
+  {{end}}
+</main>
+{{template "foot" .}}{{end}}
+
 {{define "404.html"}}{{template "head" .}}
 <main class="wrap doc">
   <h1>Page not found</h1>

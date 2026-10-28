@@ -5,7 +5,9 @@
 # Builds the site into _site from the latest glsec release: its docs, its
 # rule list, the output of its binary on sample/bad-pipeline.yml in every format,
 # and the latest GitLab
-# component release. Needs git, go, curl, jq and GH_TOKEN for the GitHub API.
+# component release. The performance page reads the benchmark history from
+# glsec's benchmarks branch and the tags that mark releases in it.
+# Needs git, go, curl, jq and GH_TOKEN for the GitHub API.
 set -euo pipefail
 
 work=$(mktemp -d)
@@ -39,4 +41,8 @@ done
 
 "$work/glsec-bin" list --format json > "$work/rules.json"
 
-go run . -src "$work/glsec" -version "${tag#v}" -component "$component" -reports "$work/reports" -rules "$work/rules.json" -out _site
+curl -fsSL https://raw.githubusercontent.com/glsec/glsec/benchmarks/data/benchmarks.jsonl -o "$work/benchmarks.jsonl"
+gh api --paginate repos/glsec/glsec/tags --jq '.[] | {name, sha: .commit.sha}' | jq -s . > "$work/tags.json"
+
+go run . -src "$work/glsec" -version "${tag#v}" -component "$component" -reports "$work/reports" -rules "$work/rules.json" \
+  -bench "$work/benchmarks.jsonl" -tags "$work/tags.json" -out _site

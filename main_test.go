@@ -12,7 +12,7 @@ import (
 )
 
 func fixture(out string) Options {
-	return Options{Src: "testdata/src", Version: "1.23.0", Component: "v1.0.25", Reports: "testdata/reports", Rules: "testdata/rules.json", Out: out}
+	return Options{Src: "testdata/src", Version: "1.23.0", Component: "v1.0.25", Reports: "testdata/reports", Rules: "testdata/rules.json", Bench: "testdata/bench.jsonl", Tags: "testdata/tags.json", Out: out}
 }
 
 func buildFixture(t *testing.T) string {
@@ -35,7 +35,7 @@ func read(t *testing.T, path string) string {
 
 func TestBuild_Pages(t *testing.T) {
 	out := buildFixture(t)
-	for _, p := range []string{"index.html", "404.html", "owasp/index.html", "reports/index.html", "rules/index.html", "rules/GL001/index.html", "rules/GL002/index.html", "style.css", "favicon.ico", "favicon-32.png", "favicon-64.png", "apple-touch-icon.png", "logo.png", "sitemap.xml", "robots.txt"} {
+	for _, p := range []string{"index.html", "404.html", "owasp/index.html", "reports/index.html", "performance/index.html", "rules/index.html", "rules/GL001/index.html", "rules/GL002/index.html", "style.css", "favicon.ico", "favicon-32.png", "favicon-64.png", "apple-touch-icon.png", "logo.png", "sitemap.xml", "robots.txt"} {
 		if _, err := os.Stat(filepath.Join(out, p)); err != nil {
 			t.Errorf("missing %s", p)
 		}

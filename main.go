@@ -4,7 +4,8 @@
 // Command site builds glsec.github.io from a glsec source tree: a home page,
 // the rule overview from docs/rules.md and one page per docs/rules/GLxxx.md.
 //
-//	go run . -src ../glsec -version 1.23.0 -component v1.0.25 -reports reports -rules rules.json -out _site
+//	go run . -src ../glsec -version 1.23.0 -component v1.0.25 -reports reports -rules rules.json \
+//		-bench benchmarks.jsonl -tags tags.json -out _site
 package main
 
 import (
@@ -72,6 +73,7 @@ type Page struct {
 	Body        template.HTML
 	Rule        *Rule
 	RuleCount   int
+	Perf        *Perf
 }
 
 func main() {
@@ -80,9 +82,11 @@ func main() {
 	component := flag.String("component", "", "latest GitLab component release, e.g. v1.0.25")
 	reports := flag.String("reports", "", "directory with glsec's output on the sample, one <format>.txt per format")
 	rules := flag.String("rules", "", "output of glsec list --format json from the same release")
+	bench := flag.String("bench", "", "data/benchmarks.jsonl from glsec's benchmarks branch")
+	tags := flag.String("tags", "", "glsec's tags as a JSON list of {name, sha}")
 	out := flag.String("out", "_site", "output directory")
 	flag.Parse()
-	if err := build(Options{Src: *src, Version: *version, Component: *component, Reports: *reports, Rules: *rules, Out: *out}); err != nil {
+	if err := build(Options{Src: *src, Version: *version, Component: *component, Reports: *reports, Rules: *rules, Bench: *bench, Tags: *tags, Out: *out}); err != nil {
 		fmt.Fprintln(os.Stderr, "error:", err)
 		os.Exit(1)
 	}
@@ -90,7 +94,7 @@ func main() {
 
 // Options are the generator's inputs.
 type Options struct {
-	Src, Version, Component, Reports, Rules, Out string
+	Src, Version, Component, Reports, Rules, Bench, Tags, Out string
 }
 
 func build(o Options) error {
@@ -102,7 +106,7 @@ func build(o Options) error {
 	if err != nil {
 		return err
 	}
-	tmpl, err := template.New("").Funcs(template.FuncMap{"lower": strings.ToLower}).ParseFS(templateFS, "templates/*.html")
+	tmpl, err := template.New("").Funcs(template.FuncMap{"lower": strings.ToLower, "thousands": thousands}).ParseFS(templateFS, "templates/*.html")
 	if err != nil {
 		return err
 	}
@@ -113,6 +117,10 @@ func build(o Options) error {
 		return err
 	}
 	risks, covered, outside, err := loadRisks(o.Rules, ids)
+	if err != nil {
+		return err
+	}
+	perf, err := loadPerf(o.Bench, o.Tags)
 	if err != nil {
 		return err
 	}
@@ -172,6 +180,15 @@ func build(o Options) error {
 		Covered:     covered,
 		Outside:     outside,
 	}, "owasp.html"); err != nil {
+		return err
+	}
+
+	if err := write(Page{
+		Title:       "Performance · glsec",
+		Description: "How long glsec takes to scan the same large pipeline, release by release and commit by commit.",
+		Path:        "/performance/",
+		Perf:        perf,
+	}, "performance.html"); err != nil {
 		return err
 	}
 
