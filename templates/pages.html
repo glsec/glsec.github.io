@@ -67,25 +67,33 @@
 <main class="wrap doc">
   <h1>Performance</h1>
   {{with .Perf}}
-  <p>How long glsec takes to scan one large pipeline: 2,000 jobs with <code>extends:</code> and <code>!reference</code> chains, anchors and long scripts, about 650 KB, far bigger than real pipelines so that slow code shows. Every release since v{{.Start}} and every change to <code>main</code> is measured on the same file. Each dot is the median of seven runs and links to its commit; hover for the details. The latest, {{.Latest.Label}}, took {{.Latest.MS | thousands}} ms.</p>
+  <p>How long glsec takes to scan one large pipeline: 2,000 jobs with <code>extends:</code> and <code>!reference</code> chains, anchors and long scripts, about 650 KB, far bigger than real pipelines so that slow code shows. Every release since v{{.Start}} and every change to <code>main</code> is measured on the same file, each time as the median of seven runs. Every dot links to its commit; hover for the details.</p>
   <figure class="perf">
-    <figcaption>Scan time, ms</figcaption>
-    <p class="perf-legend"><span class="perf-key perf-key-release"></span>Release <span class="perf-key perf-key-main"></span>Commit on <code>main</code></p>
+    <figcaption>Scan time of each release, ms</figcaption>
     <div class="perf-scroll">{{.Time}}</div>
   </figure>
+  <p>The time grows with the rules: each release checks more{{if .First.Rules}}, from {{.First.Rules}} rules in {{.First.Label}} to {{.Latest.Rules}} in {{.Latest.Label}}{{end}}. The releases were measured one after another on the same machine, so their times compare.</p>
+  {{if .Ratio}}
+  <figure class="perf">
+    <figcaption>Commits on <code>main</code> since {{.Latest.Label}}, time relative to it</figcaption>
+    <p class="perf-legend"><span class="perf-key perf-key-main"></span>Commit <span class="perf-key perf-key-ref"></span>1.0: as fast as the release</p>
+    <div class="perf-scroll">{{.Ratio}}</div>
+  </figure>
+  <p>Every push to <code>main</code> runs on whatever GitHub runner it gets, and their speed varies by 10 to 30% or more. So each push also measures the latest release in the same job, taking turns, and the chart shows the ratio: below 1.0 is faster than the release.{{with .Commit}} The latest commit, {{.Label}}, takes {{.RatioText}}.{{end}}</p>
+  {{end}}
   {{if .Allocs}}
   <figure class="perf">
-    <figcaption>Allocations per scan, millions (<code>BenchmarkRules</code>)</figcaption>
+    <figcaption>Allocations per scan of the latest commits, millions (<code>BenchmarkRules</code>)</figcaption>
     <div class="perf-scroll">{{.Allocs}}</div>
   </figure>
   {{end}}
-  <p>The time grows with the rules: each release checks more{{if .First.Rules}}, from {{.First.Rules}} rules in {{.First.Label}} to {{.Latest.Rules}} now{{end}}. The runs happen on shared GitHub runners whose speed varies by 10 to 30% between jobs, more when the CPU model differs, so compare neighbouring dots rather than single steps. Allocations don't depend on the machine; they are recorded for commits on <code>main</code>{{if not .Allocs}} and get their own chart once there are two{{end}}.</p>
+  <p>Allocations don't depend on the machine; they are recorded for commits on <code>main</code>{{if not .Allocs}} and get their own chart once there are two{{end}}.</p>
   <details>
     <summary>All values</summary>
     <table class="perf-table">
-      <thead><tr><th>Release or commit</th><th>Date</th><th>Scan time</th><th>Rules</th><th>CPU</th></tr></thead>
+      <thead><tr><th>Release or commit</th><th>Date</th><th>Scan time</th><th>Relative</th><th>Rules</th><th>CPU</th></tr></thead>
       <tbody>{{range .Points}}
-        <tr><td><a href="{{.URL}}">{{.Label}}</a></td><td>{{.Date}}</td><td class="num">{{.MS | thousands}} ms</td><td class="num">{{if .Rules}}{{.Rules}}{{end}}</td><td>{{.CPU}}</td></tr>{{end}}
+        <tr><td><a href="{{.URL}}">{{.Label}}</a></td><td>{{.Date}}</td><td class="num">{{.MS | thousands}} ms</td><td class="num">{{.RatioText}}</td><td class="num">{{if .Rules}}{{.Rules}}{{end}}</td><td>{{.CPU}}</td></tr>{{end}}
       </tbody>
     </table>
   </details>
