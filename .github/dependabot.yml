@@ -20,6 +20,10 @@ updates:
       default-days: 7
   - package-ecosystem: npm
     directory: /.github/site-checks
+    # With "/" the branch would have a ".github" path component, which git
+    # rejects; Dependabot's update failed with "invalid or unauthorized changes".
+    pull-request-branch-name:
+      separator: "-"
     schedule:
       interval: weekly
     cooldown:
