@@ -5,8 +5,10 @@ package main
 
 import (
 	"fmt"
+	"io/fs"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"testing"
 )
@@ -285,5 +287,80 @@ func TestHeaderNavStylesAreScoped(t *testing.T) {
 		if strings.HasPrefix(strings.TrimSpace(line), "nav ") || strings.HasPrefix(strings.TrimSpace(line), "nav a") {
 			t.Errorf("unscoped nav rule: %s", strings.TrimSpace(line))
 		}
+	}
+}
+
+// Nothing in a doc can put markup or a script URL on a page: raw HTML is
+// dropped and links with a script or data scheme lose their href. Both come
+// from goldmark's defaults, which these tests pin (#32).
+func TestConvert_NoScript(t *testing.T) {
+	src := strings.Join([]string{
+		"# GL999",
+		"",
+		"<script>alert(1)</script>",
+		"",
+		`<img src=x onerror="alert(1)">`,
+		"",
+		"Inline <span onmouseover=\"alert(1)\">html</span> and <a href=\"javascript:alert(1)\">a</a>.",
+		"",
+		"[a](javascript:alert(1)) [b](JavaScript:alert(1)) [c](  javascript:alert(1)) [d](javascript://%0aalert(1))",
+		"[e](vbscript:msgbox) [f](data:text/html,<script>alert(1)</script>) [g](JAVASCRIPT&#58;alert(1))",
+		"![h](javascript:alert(1)) <javascript:alert(1)> [i][ref]",
+		"",
+		"[ref]: javascript:alert(1)",
+		"",
+		"| a | b |",
+		"|---|---|",
+		"| `x|y` | <b onclick=alert(1)>c</b> |",
+	}, "\n")
+	html, err := converter{version: "1.23.0"}.convert("docs/rules/GL999.md", []byte(src), true)
+	if err != nil {
+		t.Fatal(err)
+	}
+	out := strings.ToLower(string(html))
+	for _, bad := range []string{"<script", "<img src=x", "onerror", "onmouseover", "onclick", "<span", `href="javascript`, `href="vbscript`, `href="data:`, `src="javascript`, "javascript&#58;"} {
+		if strings.Contains(out, bad) {
+			t.Errorf("rendered doc contains %q:\n%s", bad, html)
+		}
+	}
+	if !strings.Contains(out, "raw html omitted") {
+		t.Errorf("expected goldmark to drop raw HTML, got:\n%s", html)
+	}
+}
+
+// Every page carries the CSP and loads nothing it forbids: no script, and
+// images and stylesheets only from the site itself (#32).
+func TestBuild_ContentSecurityPolicy(t *testing.T) {
+	out := buildFixture(t)
+	const csp = `<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src 'self'; style-src 'self' 'unsafe-inline'; base-uri 'none'; form-action 'none'">`
+	srcRe := regexp.MustCompile(`<img[^>]*src="(https?:)?//|<link rel="(?:stylesheet|icon|apple-touch-icon)"[^>]*href="(https?:)?//`)
+	pages := 0
+	err := filepath.WalkDir(out, func(p string, d fs.DirEntry, err error) error {
+		if err != nil || d.IsDir() || !strings.HasSuffix(p, ".html") {
+			return err
+		}
+		pages++
+		page := read(t, p)
+		if !strings.Contains(page, csp) {
+			t.Errorf("%s lacks the CSP meta tag", p)
+		}
+		if i, j := strings.Index(page, csp), strings.Index(page, "<link"); j >= 0 && i > j {
+			t.Errorf("%s: the CSP comes after the first <link>", p)
+		}
+		for _, bad := range []string{"<script", "<iframe", "<object", "<embed", "<form", "<base"} {
+			if strings.Contains(page, bad) {
+				t.Errorf("%s contains %s, which the CSP blocks or forbids", p, bad)
+			}
+		}
+		if m := srcRe.FindString(page); m != "" {
+			t.Errorf("%s loads a resource from another origin: %s", p, m)
+		}
+		return nil
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if pages < 5 {
+		t.Fatalf("checked %d pages, want the whole site", pages)
 	}
 }
