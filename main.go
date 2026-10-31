@@ -350,7 +350,10 @@ func (c converter) convert(file string, raw []byte, dropTitle bool) (template.HT
 	if fix.err != nil {
 		return "", fix.err
 	}
-	return template.HTML(buf.String()), nil //nolint:gosec // goldmark output with raw HTML disabled
+	// A code block that scrolls must take keyboard focus to be scrollable
+	// without a mouse (#37). With raw HTML off, every <pre> is goldmark's own.
+	html := strings.ReplaceAll(buf.String(), "<pre>", `<pre tabindex="0">`)
+	return template.HTML(html), nil //nolint:gosec // goldmark output with raw HTML disabled
 }
 
 // linkFixer points relative links in a doc at the site: another rule doc
