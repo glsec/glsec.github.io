@@ -2,6 +2,8 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
+{{/* GitHub Pages sets no headers, so the policy comes as a meta tag (#32). The site runs no script; the one inline style is the --i animation index of the home page's sample output. */}}
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src 'self'; style-src 'self' 'unsafe-inline'; base-uri 'none'; form-action 'none'">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{{.Title}}</title>
 {{with .Description}}<meta name="description" content="{{.}}">
