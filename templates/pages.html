@@ -46,7 +46,7 @@
 <main class="wrap doc">
   <h1>Example reports</h1>
   <p>One pipeline file and what glsec reports for it. Each output below is what glsec {{.Version}} prints for this file, regenerated with every release. The GitLab screenshots show the same file in the <a href="https://gitlab.com/glsec-io/examples">example projects</a> and are taken by hand.</p>
-  <pre class="numbered"><code>{{range .Input}}<span class="ln">{{.}}</span>
+  <pre class="numbered" tabindex="0"><code>{{range .Input}}<span class="ln">{{.}}</span>
 {{end}}</code></pre>
   <nav class="toc" aria-label="Formats">{{range .Reports}}<a href="#{{.Format}}">{{.Name}}</a>{{end}}{{if .Inventory}}<a href="#inventory">Pipeline inventory</a>{{end}}</nav>
   {{range .Reports}}
@@ -55,8 +55,8 @@
     <p>{{.Use}}</p>
     <p class="where"><strong>Shows up in:</strong> {{.Where}}</p>
     {{with .Shot}}<figure class="shot"><a href="{{.Link}}"><img src="{{.Src}}" alt="{{.Alt}}" loading="lazy"></a><figcaption>{{.Caption}} <a href="{{.Link}}">Open it on {{.Site}}</a>.</figcaption></figure>{{end}}
-    {{with .Wiring}}<details><summary>Job that publishes it</summary><pre><code>{{.}}</code></pre></details>{{end}}
-    <details{{if .Open}} open{{end}}><summary>Output</summary><pre class="output"><code>{{.HTML}}</code></pre></details>
+    {{with .Wiring}}<details><summary>Job that publishes it</summary><pre tabindex="0"><code>{{.}}</code></pre></details>{{end}}
+    <details{{if .Open}} open{{end}}><summary>Output</summary><pre class="output" tabindex="0"><code>{{.HTML}}</code></pre></details>
   </section>
   {{end}}
   {{with .Inventory}}
@@ -64,10 +64,10 @@
     <h2>Pipeline inventory (CycloneDX) <code>glsec inventory</code></h2>
     <p>Not a findings report: <code>glsec inventory .gitlab-ci.yml &gt; pipeline.cdx.json</code> writes a <a href="https://cyclonedx.org/docs/1.6/json/">CycloneDX 1.6</a> BOM of the images, services and includes a pipeline pulls in. Upload it to Dependency-Track or another CycloneDX tool, and the pipeline is tracked next to your application's dependencies. Every component carries a <code>glsec:pinning</code> property, so you can filter for references that aren't pinned: <code>mutable</code>, <code>none</code> or <code>unresolved</code>.</p>
     <p>For this pipeline:</p>
-    <pre class="numbered"><code>{{range .Input}}<span class="ln">{{.}}</span>
+    <pre class="numbered" tabindex="0"><code>{{range .Input}}<span class="ln">{{.}}</span>
 {{end}}</code></pre>
     <p>glsec {{$.Version}} lists these components. The BOM around them also has the pipeline file as <code>metadata.component</code> and a <code>dependencies</code> entry that links it to each component.</p>
-    <details open><summary>Components</summary><pre class="output"><code>{{.Components}}</code></pre></details>
+    <details open><summary>Components</summary><pre class="output" tabindex="0"><code>{{.Components}}</code></pre></details>
     <ul>
       <li>It works offline and isn't transitive: includes are listed, not fetched, so what an include brings in itself is not in the BOM.</li>
       <li><code>local:</code> and <code>artifact:</code> includes are left out, since they come from the repository or the pipeline.</li>

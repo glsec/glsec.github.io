@@ -291,7 +291,8 @@ func chart(points []PerfPoint, id, title string, unit, minTop, refLine float64, 
 	y := func(p PerfPoint) float64 { return padT + plotH*(1-value(p)/unit/top) }
 
 	var b strings.Builder
-	fmt.Fprintf(&b, `<svg class="perf-chart" viewBox="0 0 %g %g" role="img" aria-labelledby="perf-%s">`, chartW, chartH, id)
+	// A group, not an img: an img hides the dots' links from assistive technology (#37).
+	fmt.Fprintf(&b, `<svg class="perf-chart" viewBox="0 0 %g %g" role="group" aria-labelledby="perf-%s">`, chartW, chartH, id)
 	fmt.Fprintf(&b, `<title id="perf-%s">%s by release and commit; the table below lists every value</title>`, id, title)
 	for v := 0.0; v <= top+step/2; v += step {
 		yy := padT + plotH*(1-v/top)

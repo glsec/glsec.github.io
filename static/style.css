@@ -63,6 +63,7 @@ pre {
   overflow-x: auto;
   line-height: 1.5;
 }
+pre:focus-visible { outline: 2px solid var(--link); outline-offset: 2px; }
 
 /* Header and hero share the slate of the logo. */
 .top { background: var(--slate); color: var(--on-slate); border-bottom: 3px solid var(--orange); }
@@ -84,7 +85,7 @@ pre {
 .actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 28px; }
 .button {
   display: inline-block; padding: 11px 20px; border-radius: 4px;
-  background: var(--orange); color: var(--slate); text-decoration: none; font-weight: 700;
+  background: var(--orange); color: var(--slate-deep); text-decoration: none; font-weight: 700;
   border: 2px solid var(--orange);
 }
 .button.ghost { background: transparent; color: var(--on-slate); border-color: var(--on-slate-muted); }
@@ -166,7 +167,7 @@ tbody tr:hover { background: var(--surface); }
 .doc .risk h2 { border: none; padding: 0; margin: 0; font-size: 1.15rem; flex: 1 1 260px; }
 .risk h2 a { color: var(--text); text-decoration: none; }
 .risk h2 a:hover { text-decoration: underline; }
-.risk-id { background: var(--slate); color: var(--orange); font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.8rem; padding: 2px 8px; border-radius: 3px; }
+.risk-id { background: var(--slate-deep); color: var(--orange); font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.8rem; padding: 2px 8px; border-radius: 3px; }
 .risk-count { color: var(--muted); font-size: 0.9rem; }
 .risk p { margin: 8px 0; max-width: none; }
 .risk-rules { list-style: none; padding: 0; margin: 10px 0 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 4px 20px; font-size: 0.93rem; }

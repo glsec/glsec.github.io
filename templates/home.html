@@ -15,7 +15,7 @@
           <span><strong>0</strong>network calls</span>
         </div>
       </div>
-      <pre class="terminal" aria-label="glsec output"><span class="prompt">$ <span class="cmd">glsec bad-pipeline.yml</span></span>
+      <pre class="terminal"><span class="prompt">$ <span class="cmd">glsec bad-pipeline.yml</span></span>
 {{range $i, $l := .Sample}}<span class="line" style="--i: {{$i}}">{{$l}}</span>
 {{end}}</pre>
     </div>
@@ -30,33 +30,33 @@
     <div class="cards">
       <div class="card">
         <h3>GitLab CI/CD component</h3>
-<pre><code>include:
+<pre tabindex="0"><code>include:
   - component: gitlab.com/glsec-io/glsec/glsec@{{.Component}}</code></pre>
         <p>From the <a href="https://gitlab.com/explore/catalog/glsec-io/glsec">CI/CD Catalog</a>. A second component reports findings in the merge request's Code Quality widget.</p>
       </div>
       <div class="card">
         <h3>Package managers</h3>
-<pre><code>brew install glsec/tap/glsec
-aqua g -i glsec/glsec && aqua i
+<pre tabindex="0"><code>brew install glsec/tap/glsec
+aqua g -i glsec/glsec &amp;&amp; aqua i
 mise use github:glsec/glsec
 pipx install glsec</code></pre>
         <p>Homebrew, <a href="https://aquaproj.github.io/">aqua</a>, <a href="https://mise.jdx.dev/">mise</a> and <a href="https://pypi.org/project/glsec/">PyPI</a> (also <code>uvx glsec</code>). The <a href="https://github.com/glsec/homebrew-tap">Homebrew tap</a> and aqua install a release only after its provenance check passes; the PyPI wheels carry the release binary after the same check.</p>
       </div>
       <div class="card">
         <h3>Docker</h3>
-<pre><code>docker run --rm -v "$PWD:/src:ro" -w /src \
+<pre tabindex="0"><code>docker run --rm -v "$PWD:/src:ro" -w /src \
   ghcr.io/glsec/glsec:{{.Version}}</code></pre>
         <p>Signed with cosign, with SLSA provenance and an SBOM.</p>
       </div>
       <div class="card">
         <h3>Binary</h3>
-<pre><code>curl -sSLO https://github.com/glsec/glsec/releases/download/v{{.Version}}/glsec_{{.Version}}_linux_amd64.tar.gz
+<pre tabindex="0"><code>curl -sSLO https://github.com/glsec/glsec/releases/download/v{{.Version}}/glsec_{{.Version}}_linux_amd64.tar.gz
 tar xzf glsec_{{.Version}}_linux_amd64.tar.gz</code></pre>
         <p>Linux, macOS and Windows on <a href="https://github.com/glsec/glsec/releases/tag/v{{.Version}}">the release page</a>. Or <code>go install github.com/glsec/glsec/cmd/glsec@v{{.Version}}</code>.</p>
       </div>
       <div class="card">
         <h3>Claude Code plugin</h3>
-<pre><code>/plugin marketplace add glsec/glsec
+<pre tabindex="0"><code>/plugin marketplace add glsec/glsec
 /plugin install glsec@glsec</code></pre>
         <p>Adds <code>/glsec:scan</code>, which scans the project and has Claude explain and fix each finding, and a hook that scans a <code>.gitlab-ci.yml</code> or <code>.gitlab/*.yml</code> file after Claude edits it. Without a <code>glsec</code> on your <code>PATH</code> it downloads the release binary and checks it against <code>checksums.txt</code> and, with cosign or the GitHub CLI installed, its signed provenance. Linux and macOS; the edit hook needs <code>jq</code>. <a href="https://github.com/glsec/glsec#claude-code-plugin">Details</a> in the README.</p>
       </div>

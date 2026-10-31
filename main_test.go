@@ -58,6 +58,7 @@ func TestBuild_RulePage(t *testing.T) {
 		`href="https://github.com/glsec/glsec/blob/v1.23.0/README.md#shellcheck-integration"`,
 		`href="https://github.com/glsec/glsec/blob/v1.23.0/rules/gl001.go"`,
 		`<link rel="canonical" href="https://glsec.github.io/rules/GL001/">`,
+		`<pre tabindex="0"><code class="language-yaml">`,
 	} {
 		if !strings.Contains(page, want) {
 			t.Errorf("GL001 page lacks %s", want)
@@ -239,7 +240,7 @@ func TestBuild_ReportsPage(t *testing.T) {
 	page := read(t, filepath.Join(buildFixture(t), "reports", "index.html"))
 	for _, want := range []string{
 		"what glsec 1.23.0 prints for this file, regenerated with every release",
-		`<pre class="numbered"><code><span class="ln">deploy:</span>` + "\n" + `<span class="ln">  image: alpine:latest</span>`,
+		`<pre class="numbered" tabindex="0"><code><span class="ln">deploy:</span>` + "\n" + `<span class="ln">  image: alpine:latest</span>`,
 		`<section class="report" id="codeclimate">`,
 		"codeclimate output &lt;x&gt;",
 		"codequality: gl-code-quality.json",
@@ -363,7 +364,7 @@ func TestConvert_NoScript(t *testing.T) {
 // images and stylesheets only from the site itself (#32).
 func TestBuild_ContentSecurityPolicy(t *testing.T) {
 	out := buildFixture(t)
-	const csp = `<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src 'self'; style-src 'self' 'unsafe-inline'; base-uri 'none'; form-action 'none'">`
+	const csp = `<meta http-equiv="Content-Security-Policy" content="default-src 'none'; connect-src 'self'; img-src 'self'; style-src 'self' 'unsafe-inline'; base-uri 'none'; form-action 'none'">`
 	srcRe := regexp.MustCompile(`<img[^>]*src="(https?:)?//|<link rel="(?:stylesheet|icon|apple-touch-icon)"[^>]*href="(https?:)?//`)
 	pages := 0
 	err := filepath.WalkDir(out, func(p string, d fs.DirEntry, err error) error {
