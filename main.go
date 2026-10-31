@@ -67,6 +67,7 @@ type Page struct {
 	Sample      []template.HTML // lines of the home page example
 	Reports     []Report
 	Input       []string // lines of the file the reports are for
+	Inventory   *Inventory
 	Risks       []Risk
 	Covered     int // OWASP risks with at least one rule
 	Outside     int // OWASP risks a pipeline file can't show
@@ -80,7 +81,7 @@ func main() {
 	src := flag.String("src", "", "glsec source tree, checked out at a release tag")
 	version := flag.String("version", "", "glsec release the source tree is at, e.g. 1.23.0")
 	component := flag.String("component", "", "latest GitLab component release, e.g. v1.0.25")
-	reports := flag.String("reports", "", "directory with glsec's output on the sample, one <format>.txt per format")
+	reports := flag.String("reports", "", "directory with glsec's output on the sample, one <format>.txt per format, and the inventory of sample/inventory.yml")
 	rules := flag.String("rules", "", "output of glsec list --format json from the same release")
 	bench := flag.String("bench", "", "data/benchmarks.jsonl from glsec's benchmarks branch")
 	tags := flag.String("tags", "", "glsec's tags as a JSON list of {name, sha}")
@@ -103,6 +104,10 @@ func build(o Options) error {
 		return errors.New("-src, -version (X.Y.Z) and -component (vX.Y.Z) are required")
 	}
 	input, reports, err := loadReports(o.Reports, version)
+	if err != nil {
+		return err
+	}
+	inventory, err := loadInventory(o.Reports)
 	if err != nil {
 		return err
 	}
@@ -164,10 +169,11 @@ func build(o Options) error {
 
 	if err := write(Page{
 		Title:       "Example reports · glsec",
-		Description: "What glsec's text, table, GitLab Code Quality, JUnit, SARIF and JSON output look like, and where GitLab shows each one.",
+		Description: "What glsec's text, table, GitLab Code Quality, JUnit, SARIF and JSON output look like, where GitLab shows each one, and the CycloneDX inventory of a pipeline.",
 		Path:        "/reports/",
 		Reports:     reports,
 		Input:       strings.Split(input, "\n"),
+		Inventory:   inventory,
 	}, "reports.html"); err != nil {
 		return err
 	}

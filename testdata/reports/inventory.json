@@ -1,0 +1,114 @@
+{
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.6",
+  "serialNumber": "urn:uuid:2e7dd16e-13dc-537d-a349-b97ce1bc323b",
+  "version": 1,
+  "metadata": {
+    "tools": {
+      "components": [
+        {
+          "type": "application",
+          "name": "glsec",
+          "version": "dev",
+          "externalReferences": [
+            {
+              "type": "website",
+              "url": "https://glsec.github.io"
+            }
+          ]
+        }
+      ]
+    },
+    "component": {
+      "type": "file",
+      "bom-ref": "pipeline",
+      "name": "inventory.yml"
+    }
+  },
+  "components": [
+    {
+      "type": "container",
+      "bom-ref": "image:node:latest",
+      "name": "node",
+      "version": "latest",
+      "purl": "pkg:docker/library/node@latest",
+      "properties": [
+        {
+          "name": "glsec:kind",
+          "value": "image"
+        },
+        {
+          "name": "glsec:pinning",
+          "value": "mutable"
+        },
+        {
+          "name": "glsec:line",
+          "value": "7"
+        },
+        {
+          "name": "glsec:job",
+          "value": "test"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "project:platform/ci-templates@main",
+      "name": "platform/ci-templates",
+      "version": "main",
+      "properties": [
+        {
+          "name": "glsec:kind",
+          "value": "project"
+        },
+        {
+          "name": "glsec:pinning",
+          "value": "mutable"
+        },
+        {
+          "name": "glsec:line",
+          "value": "2"
+        },
+        {
+          "name": "glsec:file",
+          "value": "/docker.yml"
+        }
+      ]
+    },
+    {
+      "type": "container",
+      "bom-ref": "service:redis:7.4.1",
+      "name": "redis",
+      "version": "7.4.1",
+      "purl": "pkg:docker/library/redis@7.4.1",
+      "properties": [
+        {
+          "name": "glsec:kind",
+          "value": "service"
+        },
+        {
+          "name": "glsec:pinning",
+          "value": "version"
+        },
+        {
+          "name": "glsec:line",
+          "value": "9"
+        },
+        {
+          "name": "glsec:job",
+          "value": "test"
+        }
+      ]
+    }
+  ],
+  "dependencies": [
+    {
+      "ref": "pipeline",
+      "dependsOn": [
+        "image:node:latest",
+        "project:platform/ci-templates@main",
+        "service:redis:7.4.1"
+      ]
+    }
+  ]
+}
