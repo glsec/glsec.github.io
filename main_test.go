@@ -37,7 +37,7 @@ func read(t *testing.T, path string) string {
 
 func TestBuild_Pages(t *testing.T) {
 	out := buildFixture(t)
-	for _, p := range []string{"index.html", "404.html", "owasp/index.html", "reports/index.html", "performance/index.html", "rules/index.html", "rules/GL001/index.html", "rules/GL002/index.html", "style.css", "favicon.ico", "favicon-32.png", "favicon-64.png", "apple-touch-icon.png", "logo.png", "sitemap.xml", "robots.txt"} {
+	for _, p := range []string{"index.html", "404.html", "owasp/index.html", "reports/index.html", "performance/index.html", "gitlab-ultimate/index.html", "rules/index.html", "rules/GL001/index.html", "rules/GL002/index.html", "style.css", "favicon.ico", "favicon-32.png", "favicon-64.png", "apple-touch-icon.png", "logo.png", "sitemap.xml", "robots.txt"} {
 		if _, err := os.Stat(filepath.Join(out, p)); err != nil {
 			t.Errorf("missing %s", p)
 		}
@@ -88,7 +88,7 @@ func TestBuild_HomeAndOverview(t *testing.T) {
 		"mise use github:glsec/glsec",
 		"pipx install glsec",
 		`<a href="https://gitlab.com/explore/catalog/glsec-io/glsec">GitLab</a>`,
-		"3 rules",
+		"4 rules",
 	} {
 		if !strings.Contains(home, want) {
 			t.Errorf("home page lacks %s", want)
@@ -184,7 +184,7 @@ func TestBuild_OWASPPage(t *testing.T) {
 		`id="cicd-sec-3"`,
 		`<a href="/rules/GL001/"><span class="rid">GL001</span> Mutable image tag</a>`,
 		`<a href="/rules/GL011/"><span class="rid">GL011</span>`,
-		"2 rules",
+		"3 rules",
 		"1 rule<",
 		`href="https://owasp.org/www-project-top-10-ci-cd-security-risks/CICD-SEC-10-Insufficient-Logging-And-Visibility"`,
 		"not in the pipeline file",
@@ -274,6 +274,33 @@ func TestBuild_ReportsPage(t *testing.T) {
 	// Formats GitLab doesn't read as a report get no wiring.
 	if n := strings.Count(page, "Job that publishes it"); n != 3 {
 		t.Errorf("%d wiring snippets, want 3", n)
+	}
+}
+
+func TestBuild_UltimatePage(t *testing.T) {
+	out := buildFixture(t)
+	page := read(t, filepath.Join(out, "gitlab-ultimate", "index.html"))
+	for _, want := range []string{
+		"<h1>GitLab Ultimate: vulnerability report and policies</h1>",
+		"component: gitlab.com/glsec-io/glsec/glsec@v1.0.25",
+		`version: "1.23.0"`,
+		`<a href="/rules/GL082/#scan-execution-policies">`,
+		`<a href="/reports/#gitlab-sast">`,
+	} {
+		if !strings.Contains(page, want) {
+			t.Errorf("Ultimate page lacks %s", want)
+		}
+	}
+	for _, shot := range []string{"vulnerability-report", "vulnerability-detail", "mr-security-widget", "mr-security-report"} {
+		if !strings.Contains(page, `src="/screenshots/`+shot+`.png"`) {
+			t.Errorf("Ultimate page lacks the %s screenshot", shot)
+		}
+		if _, err := os.Stat(filepath.Join(out, "screenshots", shot+".png")); err != nil {
+			t.Error(err)
+		}
+	}
+	if !strings.Contains(read(t, filepath.Join(out, "reports", "index.html")), `<a href="/gitlab-ultimate/">screenshots</a>`) {
+		t.Error("reports page doesn't link the Ultimate page")
 	}
 }
 

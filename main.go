@@ -198,6 +198,14 @@ func build(o Options) error {
 		return err
 	}
 
+	if err := write(Page{
+		Title:       "GitLab Ultimate: vulnerability report and policies · glsec",
+		Description: "glsec findings in GitLab Ultimate's vulnerability report and merge request security widget, glsec made mandatory with a pipeline execution policy, and what a scan execution policy means for GL082.",
+		Path:        "/gitlab-ultimate/",
+	}, "ultimate.html"); err != nil {
+		return err
+	}
+
 	overview, err := conv.render(src, "docs/rules.md", true)
 	if err != nil {
 		return err

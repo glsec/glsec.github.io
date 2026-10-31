@@ -81,6 +81,68 @@
 </main>
 {{template "foot" .}}{{end}}
 
+{{define "ultimate.html"}}{{template "head" .}}
+<main class="wrap doc">
+  <h1>GitLab Ultimate: vulnerability report and policies</h1>
+  <p>Everything on this page needs GitLab Ultimate. It was tried out on gitlab.com on 2026-10-27, in a public test project with a pipeline file full of deliberate findings. The screenshots show GitLab Ultimate, cropped to the part that matters. GitLab only shows the vulnerability report and the security widget to project members, so the screenshots have no link. glsec is an independent project, not affiliated with or endorsed by GitLab.</p>
+
+  <h2 id="vulnerability-report">Findings in the vulnerability report</h2>
+  <p>With <code>--format gitlab-sast</code>, glsec writes a SAST report in GitLab's security report schema. A job uploads it as <code>artifacts:reports:sast</code> (<a href="/reports/#gitlab-sast">the job and an example report</a>), and every glsec finding on the default branch becomes a vulnerability that can be triaged: confirmed, dismissed or linked to an issue. Error findings are High, warnings Medium, info Low.</p>
+  <figure class="shot"><img src="/screenshots/vulnerability-report.png" alt="GitLab vulnerability report of the test project: 9 development vulnerabilities, 2 High and 7 Medium. The list shows GL001 Mutable image tag and GL011 Download-and-execute pattern in script as High, GL028 artifacts untracked without path restriction and GL080 Sensitive job with no pipeline-source guard as Medium, each with its line in bad/.gitlab-ci.yml, report type SAST, scanner Glsec" width="1143" height="940" loading="lazy"><figcaption>The vulnerability report of the test project's default branch. The screenshot is from before glsec 1.25.0, which also lists the CWE as an identifier.</figcaption></figure>
+  <figure class="shot"><img src="/screenshots/vulnerability-detail.png" alt="GitLab vulnerability page for GL011: Download-and-execute pattern in script (curl | bash). Remediation: See https://glsec.github.io/rules/GL011/. Report type SAST, scanner glsec, file bad/.gitlab-ci.yml line 5 with the source line curl -fsSL https://example.com/install.sh | sh, the finding's message with the job name, and the identifiers GL011 and CICD-SEC-3. Status Needs triage, severity High" width="1143" height="730" loading="lazy"><figcaption>One vulnerability: the source line, glsec's message, and the link to the rule page as remediation.</figcaption></figure>
+
+  <h2 id="merge-request">In the merge request</h2>
+  <p>The merge request's security widget lists the findings the merge request adds, compared with the target branch.</p>
+  <figure class="shot"><img src="/screenshots/mr-security-widget.png" alt="GitLab merge request widget: Security scanning detected 3 new potential vulnerabilities, 0 critical, 1 high, and 2 others, with a View report button" width="811" height="75" loading="lazy"><figcaption>The security widget of a merge request that adds a job with three findings.</figcaption></figure>
+  <figure class="shot"><img src="/screenshots/mr-security-report.png" alt="GitLab merge request Reports tab, Security scan: SAST detected 3 new potential vulnerabilities. New: High GL060 docker run mounting sensitive host paths, Medium GL054 Docker-in-Docker service implies a privileged runner, Medium GL056 docker run --privileged in CI script" width="1143" height="275" loading="lazy"><figcaption>The same merge request's Reports tab, with the three new findings.</figcaption></figure>
+  <p><strong>One limitation:</strong> GitLab matches a finding from one pipeline to the next by file and line. A merge request that adds or removes lines above an unchanged finding shows it as fixed and as new at the same time. A <code>tracking</code> signature in the report didn't change that in the test, so glsec's report has none.</p>
+
+  <h2 id="pipeline-execution-policy">Making glsec mandatory: a pipeline execution policy</h2>
+  <p>A <a href="https://docs.gitlab.com/user/application_security/policies/pipeline_execution_policies/">pipeline execution policy</a> runs glsec in every pipeline of the projects it applies to, and the projects can neither remove it nor configure it away. Two files in the security policy project:</p>
+  <p><code>.gitlab/security-policies/policy.yml</code></p>
+  <pre tabindex="0"><code>pipeline_execution_policy:
+  - name: glsec
+    description: Lint .gitlab-ci.yml with glsec in every pipeline.
+    enabled: true
+    pipeline_config_strategy: inject_policy
+    content:
+      include:
+        - project: my-group/security-policies   # this policy project
+          file: glsec-policy.yml
+          ref: main</code></pre>
+  <p><code>glsec-policy.yml</code></p>
+  <pre tabindex="0"><code>include:
+  - component: gitlab.com/glsec-io/glsec/glsec@{{.Component}}
+    inputs:
+      version: "{{.Version}}"
+      stage: .pipeline-policy-pre
+      no_repo_config: true
+      no_ignores: true
+      strict: true   # optional: warnings fail the job too
+
+# The policy configuration is evaluated on its own, without the project's
+# workflow:rules. A job without rules: then runs only in branch and tag
+# pipelines, so without this the merge request pipelines get no scan.
+glsec:
+  rules:
+    - when: always</code></pre>
+  <p>What it did in the test:</p>
+  <ul>
+    <li>The job runs in the reserved stage <code>.pipeline-policy-pre</code>, before every project job. When it fails, the project's jobs are skipped.</li>
+    <li>A merge request that adds a <code>.glsec.yml</code> or a <code># glsec:ignore</code> comment changes nothing: <code>no_repo_config</code> and <code>no_ignores</code> make glsec ignore both, and the job log says <code>note: .glsec.yml is ignored (--no-repo-config)</code>.</li>
+    <li>The component reference needs the <code>v</code> of the tag (<code>@{{.Component}}</code>). A reference GitLab can't resolve fails every pipeline of every project the policy applies to.</li>
+    <li>If a project has its own job named <code>glsec</code>, GitLab renames the policy job to <code>glsec:policy-&lt;id&gt;-0</code>, and both run.</li>
+    <li>The policy also runs in branch pipelines that the project's <code>workflow:rules</code> don't create, so a push to a merge request branch gets a branch pipeline with only the policy job, next to the merge request pipeline.</li>
+  </ul>
+  <p>To upgrade, bump the component and <code>version</code> in the policy project; the projects don't change. The <a href="https://gitlab.com/glsec-io/glsec#enforcing-glsec-with-a-pipeline-execution-policy">component README</a> keeps the same example.</p>
+
+  <h2 id="scan-execution-policy">Scan execution policies and GL082</h2>
+  <p><a href="/rules/GL082/">GL082</a> reports variables such as <code>SAST_DISABLED</code> that switch off GitLab's security scans. With a <a href="https://docs.gitlab.com/user/application_security/policies/scan_execution_policies/">scan execution policy</a> they don't: in the test, a policy running <code>scan: sast</code> on every branch still created its <code>semgrep-sast-0</code> job after a commit that set <code>SAST_DISABLED: "true"</code>, where the template include created no SAST job at all. So a scan execution policy is the way to make a scan mandatory, and GL082 still matters for projects and scans the policy doesn't cover. <a href="/rules/GL082/#scan-execution-policies">More in GL082</a>.</p>
+
+  <p class="source">Tiers as listed in GitLab's documentation for the <a href="https://docs.gitlab.com/user/application_security/vulnerability_report/">vulnerability report</a>, <a href="https://docs.gitlab.com/user/application_security/policies/pipeline_execution_policies/">pipeline execution policies</a> and <a href="https://docs.gitlab.com/user/application_security/policies/scan_execution_policies/">scan execution policies</a>. GitLab is a trademark of GitLab Inc.</p>
+</main>
+{{template "foot" .}}{{end}}
+
 {{define "performance.html"}}{{template "head" .}}
 <main class="wrap doc">
   <h1>Performance</h1>

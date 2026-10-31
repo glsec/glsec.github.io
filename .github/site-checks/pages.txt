@@ -4,4 +4,5 @@
 /rules/GL001/
 /owasp/
 /performance/
+/gitlab-ultimate/
 /404.html
