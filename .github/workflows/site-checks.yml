@@ -1,0 +1,53 @@
+# Checks the built site, not the generator: accessibility with axe, HTML with
+# html-validate, CSS with stylelint (#38). The SEO checks are Go tests.
+name: Site checks
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions: {}
+
+concurrency:
+  group: site-checks-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  checks:
+    name: Accessibility, HTML and CSS
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: go.mod
+          cache: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+      - name: Install the checkers
+        working-directory: .github/site-checks
+        run: |
+          npm ci --ignore-scripts
+          npm audit signatures
+      - name: Build the site from the latest glsec release
+        run: ./scripts/build.sh
+        env:
+          GH_TOKEN: ${{ github.token }}
+      - name: HTML
+        run: .github/site-checks/node_modules/.bin/html-validate --config .github/site-checks/htmlvalidate.json "_site/**/*.html"
+      - name: CSS
+        run: .github/site-checks/node_modules/.bin/stylelint --config .github/site-checks/stylelint.json static/style.css
+      - name: Accessibility
+        run: |
+          python3 -m http.server -d _site 8000 >/dev/null 2>&1 &
+          urls=()
+          while read -r page; do urls+=("http://localhost:8000$page"); done < .github/site-checks/pages.txt
+          .github/site-checks/node_modules/.bin/axe "${urls[@]}" \
+            --tags wcag2a,wcag2aa,wcag21aa,best-practice \
+            --chromedriver-path "$CHROMEWEBDRIVER/chromedriver" --exit

@@ -1,0 +1,16 @@
+{
+  "name": "glsec-site-checks",
+  "private": true,
+  "description": "Checks for the built site: accessibility, HTML, CSS and Lighthouse (#38)",
+  "license": "Apache-2.0",
+  "devDependencies": {
+    "@axe-core/cli": "4.14.0",
+    "html-validate": "11.16.2",
+    "lighthouse": "13.5.0",
+    "stylelint": "17.16.0",
+    "stylelint-config-recommended": "18.0.0"
+  },
+  "overrides": {
+    "basic-ftp": "6.2.3"
+  }
+}

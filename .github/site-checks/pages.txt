@@ -1,0 +1,7 @@
+/
+/reports/
+/rules/
+/rules/GL001/
+/owasp/
+/performance/
+/404.html

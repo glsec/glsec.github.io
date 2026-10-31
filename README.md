@@ -16,6 +16,8 @@ python3 -m http.server -d _site 8000   # http://localhost:8000
 go test ./...
 ```
 
+The built site is checked too (`.github/site-checks/`): on every pull request axe for accessibility, html-validate and stylelint, and `go test` checks title, description, canonical URL, one `h1` and the sitemap of every page. Lighthouse runs on `main` and weekly and wants 100 for accessibility and SEO, 90 for performance. To run them locally, `npm ci --ignore-scripts` in `.github/site-checks/` and see the steps in `site-checks.yml` and `lighthouse.yml`.
+
 The build fails on a rule doc whose first line isn't `# GLxxx — Title`, on a relative link that leaves the glsec repository, and on any internal link without a page.
 
 ## Deployment

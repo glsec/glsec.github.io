@@ -1,0 +1,64 @@
+# Lighthouse on the built site (#38). Not on pull requests: the performance
+# score depends on the runner. Accessibility and SEO must stay at 100.
+name: Lighthouse
+
+on:
+  push:
+    branches: [main]
+  schedule:
+    - cron: "41 6 * * 1"
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: lighthouse-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lighthouse:
+    name: Lighthouse (${{ matrix.preset }})
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        preset: [mobile, desktop]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: go.mod
+          cache: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+      - name: Install Lighthouse
+        working-directory: .github/site-checks
+        run: |
+          npm ci --ignore-scripts
+          npm audit signatures
+      - name: Build the site from the latest glsec release
+        run: ./scripts/build.sh
+        env:
+          GH_TOKEN: ${{ github.token }}
+      - name: Run Lighthouse
+        env:
+          PRESET: ${{ matrix.preset }}
+        run: |
+          python3 -m http.server -d _site 8000 >/dev/null 2>&1 &
+          preset=()
+          if [ "$PRESET" = desktop ]; then preset=(--preset=desktop); fi
+          mkdir -p "$RUNNER_TEMP/lighthouse"
+          n=0
+          while read -r page; do
+            n=$((n + 1))
+            CHROME_PATH=$(command -v google-chrome) .github/site-checks/node_modules/.bin/lighthouse "http://localhost:8000$page" \
+              "${preset[@]}" --quiet --chrome-flags="--headless=new" \
+              --only-categories=performance,accessibility,seo \
+              --output=json --output-path="$RUNNER_TEMP/lighthouse/$n.json" < /dev/null
+          done < .github/site-checks/pages.txt
+          node .github/site-checks/lighthouse.mjs "$RUNNER_TEMP"/lighthouse/*.json
