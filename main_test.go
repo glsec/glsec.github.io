@@ -250,6 +250,12 @@ func TestBuild_ReportsPage(t *testing.T) {
 		`<img src="/screenshots/junit-tests.png"`,
 		"expire_in: 30 days",
 		`aria-current="page">Reports</a>`,
+		`<a href="#gitlab-sast">GitLab SAST</a>`,
+		"sast: gl-sast-report.json",
+		"--format gitlab-sast --no-exit-codes",
+		`<section class="report" id="template">`,
+		"<code>docs/templates/mr-comment.md.tmpl</code>",
+		"template output &lt;x&gt;",
 		`<a href="#inventory">Pipeline inventory</a>`,
 		`<section class="report" id="inventory">`,
 		`<span class="ln">    ref: main</span>`,
@@ -265,14 +271,14 @@ func TestBuild_ReportsPage(t *testing.T) {
 		t.Error("reports page has an unreplaced version")
 	}
 	// Formats GitLab doesn't read as a report get no wiring.
-	if n := strings.Count(page, "Job that publishes it"); n != 2 {
-		t.Errorf("%d wiring snippets, want 2", n)
+	if n := strings.Count(page, "Job that publishes it"); n != 3 {
+		t.Errorf("%d wiring snippets, want 3", n)
 	}
 }
 
 func TestLoadReports_RejectsEmptyOutput(t *testing.T) {
 	dir := t.TempDir()
-	for _, f := range []string{"input.yml", "text.txt", "table.txt", "codeclimate.txt", "junit.txt", "sarif.txt"} {
+	for _, f := range []string{"input.yml", "text.txt", "table.txt", "codeclimate.txt", "junit.txt", "sarif.txt", "gitlab-sast.txt", "template.txt"} {
 		if err := os.WriteFile(filepath.Join(dir, f), []byte("x\n"), 0o644); err != nil {
 			t.Fatal(err)
 		}
