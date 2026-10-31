@@ -102,7 +102,7 @@ var reportFormats = []Report{
 		}},
 	{Format: "gitlab-sast", Name: "GitLab SAST",
 		Use:   "A SAST report in GitLab's security report schema 15.2.1. Each finding is one vulnerability, named after its rule, with the CWE and OWASP category as identifiers; error, warn and info become High, Medium and Low. GitLab matches a finding from one pipeline to the next by file and line, so a merge request that moves an unchanged finding shows it as fixed and as new.",
-		Where: "The project's vulnerability report and the merge request's security widget, on GitLab Ultimate only. Free and Premium accept the report but don't show it; use Code Quality there.",
+		Where: "The project's vulnerability report and the merge request's security widget, on GitLab Ultimate only (<a href=\"/gitlab-ultimate/\">screenshots</a>). Free and Premium accept the report but don't show it; use Code Quality there.",
 		Wiring: `glsec-sast:
   image:
     name: ghcr.io/glsec/glsec:{{VERSION}}
