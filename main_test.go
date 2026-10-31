@@ -250,6 +250,12 @@ func TestBuild_ReportsPage(t *testing.T) {
 		`<img src="/screenshots/junit-tests.png"`,
 		"expire_in: 30 days",
 		`aria-current="page">Reports</a>`,
+		`<a href="#inventory">Pipeline inventory</a>`,
+		`<section class="report" id="inventory">`,
+		`<span class="ln">    ref: main</span>`,
+		"glsec 1.23.0 lists these components.",
+		`&#34;purl&#34;: &#34;pkg:docker/library/redis@7.4.1&#34;`,
+		"blob/v1.23.0/docs/ci-integration.md#pipeline-inventory-cyclonedx",
 	} {
 		if !strings.Contains(page, want) {
 			t.Errorf("reports page lacks %s", want)
@@ -276,6 +282,25 @@ func TestLoadReports_RejectsEmptyOutput(t *testing.T) {
 	}
 	if _, _, err := loadReports(dir, "1.23.0"); err == nil || !strings.Contains(err.Error(), "json") {
 		t.Errorf("err = %v", err)
+	}
+}
+
+func TestLoadInventory_RejectsOtherJSON(t *testing.T) {
+	for name, bom := range map[string]string{
+		"not JSON":         "x",
+		"not CycloneDX":    `{"bomFormat":"SPDX","components":[{}]}`,
+		"no components":    `{"bomFormat":"CycloneDX"}`,
+		"empty components": `{"bomFormat":"CycloneDX","components":[]}`,
+	} {
+		dir := t.TempDir()
+		for f, data := range map[string]string{"inventory.yml": "x\n", "inventory.json": bom} {
+			if err := os.WriteFile(filepath.Join(dir, f), []byte(data), 0o644); err != nil {
+				t.Fatal(err)
+			}
+		}
+		if _, err := loadInventory(dir); err == nil {
+			t.Errorf("%s: no error", name)
+		}
 	}
 }
 

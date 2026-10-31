@@ -1,0 +1,12 @@
+include:
+  - project: platform/ci-templates
+    ref: main
+    file: /docker.yml
+
+test:
+  image: node:latest
+  services:
+    - redis:7.4.1
+  script:
+    - npm ci
+    - npm test

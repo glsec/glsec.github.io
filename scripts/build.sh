@@ -4,7 +4,7 @@
 #
 # Builds the site into _site from the latest glsec release: its docs, its
 # rule list, the output of its binary on sample/bad-pipeline.yml in every format,
-# and the latest GitLab
+# its inventory of sample/inventory.yml, and the latest GitLab
 # component release. The performance page reads the benchmark history from
 # glsec's benchmarks branch and the tags that mark releases in it.
 # Needs git, go, curl, jq and GH_TOKEN for the GitHub API.
@@ -38,6 +38,10 @@ for format in text table codeclimate junit sarif json; do
   (cd sample && FORCE_COLOR=1 "$work/glsec-bin" $color --format "$format" bad-pipeline.yml) > "$work/reports/$format.txt" || rc=$?
   [ "$rc" -eq 1 ] || { echo "glsec --format $format exited $rc on the sample" >&2; cat "$work/reports/$format.txt" >&2; exit 1; }
 done
+
+# The inventory exits 0; it reports no findings.
+cp sample/inventory.yml "$work/reports/inventory.yml"
+(cd sample && "$work/glsec-bin" inventory inventory.yml) > "$work/reports/inventory.json"
 
 "$work/glsec-bin" list --format json > "$work/rules.json"
 

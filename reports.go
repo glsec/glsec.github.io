@@ -4,6 +4,9 @@
 package main
 
 import (
+	"bytes"
+	"encoding/json"
+	"errors"
 	"fmt"
 	"html/template"
 	"os"
@@ -125,4 +128,43 @@ func loadReports(dir, version string) (string, []Report, error) {
 		reports = append(reports, r)
 	}
 	return strings.TrimRight(string(input), "\n"), reports, nil
+}
+
+// Inventory is glsec inventory's BOM for sample/inventory.yml, shown on
+// /reports/ as the pipeline next to the components of its BOM.
+type Inventory struct {
+	Input      []string // lines of the pipeline
+	Components string   // the BOM's components, indented as glsec prints them
+}
+
+// loadInventory reads <dir>/inventory.yml and the BOM glsec inventory wrote
+// for it, <dir>/inventory.json.
+func loadInventory(dir string) (*Inventory, error) {
+	input, err := os.ReadFile(filepath.Join(dir, "inventory.yml")) //nolint:gosec // dir comes from the build script
+	if err != nil {
+		return nil, err
+	}
+	data, err := os.ReadFile(filepath.Join(dir, "inventory.json")) //nolint:gosec // dir comes from the build script
+	if err != nil {
+		return nil, err
+	}
+	var bom struct {
+		BOMFormat  string          `json:"bomFormat"`
+		Components json.RawMessage `json:"components"`
+	}
+	if err := json.Unmarshal(data, &bom); err != nil {
+		return nil, fmt.Errorf("%s/inventory.json: %w", dir, err)
+	}
+	var components []json.RawMessage
+	if bom.BOMFormat != "CycloneDX" || json.Unmarshal(bom.Components, &components) != nil || len(components) == 0 {
+		return nil, errors.New(dir + "/inventory.json: not a CycloneDX BOM with components")
+	}
+	var buf bytes.Buffer
+	if err := json.Indent(&buf, bom.Components, "", "  "); err != nil {
+		return nil, err
+	}
+	return &Inventory{
+		Input:      strings.Split(strings.TrimRight(string(input), "\n"), "\n"),
+		Components: buf.String(),
+	}, nil
 }
