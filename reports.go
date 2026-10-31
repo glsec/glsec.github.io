@@ -19,11 +19,11 @@ import (
 type Report struct {
 	Format string // the --format value, and the file name in the reports directory
 	Name   string
-	Use    string // where the output goes
-	Where  string // where it shows up, with the GitLab tiers
-	Wiring string // a job that publishes it, if GitLab reads it as a report
-	Open   bool   // show the output expanded
-	Output string // as glsec printed it, with terminal colours for text and table
+	Use    template.HTML // what the output is
+	Where  template.HTML // where it shows up, with the GitLab tiers
+	Wiring string        // a job that publishes it, if GitLab reads it as a report
+	Open   bool          // show the output expanded
+	Output string        // as glsec printed it, with terminal colours for text and table
 	HTML   template.HTML
 	Shot   *Screenshot
 }
@@ -100,6 +100,21 @@ var reportFormats = []Report{
 			Caption: "Code scanning annotations in a GitHub pull request that brings in this file, the first three of 19.",
 			Link:    "https://github.com/glsec/example-github-code-scanning/pull/2/files",
 		}},
+	{Format: "gitlab-sast", Name: "GitLab SAST",
+		Use:   "A SAST report in GitLab's security report schema 15.2.1. Each finding is one vulnerability, named after its rule, with the CWE and OWASP category as identifiers; error, warn and info become High, Medium and Low. GitLab matches a finding from one pipeline to the next by file and line, so a merge request that moves an unchanged finding shows it as fixed and as new.",
+		Where: "The project's vulnerability report and the merge request's security widget, on GitLab Ultimate only. Free and Premium accept the report but don't show it; use Code Quality there.",
+		Wiring: `glsec-sast:
+  image:
+    name: ghcr.io/glsec/glsec:{{VERSION}}
+    entrypoint: [""]
+  script:
+    - glsec --format gitlab-sast --no-exit-codes .gitlab-ci.yml > gl-sast-report.json
+  artifacts:
+    reports:
+      sast: gl-sast-report.json`},
+	{Format: "template", Name: "Report template", Open: true,
+		Use:   "With <code>--template &lt;file&gt;</code>, a Go text/template of your own: CSV, a Markdown merge request comment, a checkstyle file. Shown here is the merge request comment that ships as an example, <code>docs/templates/mr-comment.md.tmpl</code>. The template path is read from the command line only, never from <code>.glsec.yml</code>, since that file comes from the repository being scanned.",
+		Where: "Wherever you send it, for example a merge request comment with <code>glab mr note</code>."},
 	{Format: "json", Name: "JSON",
 		Use:   "One object per finding with its OWASP and ASVS mappings, for scripts and dashboards.",
 		Where: "Wherever you send it."},

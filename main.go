@@ -169,7 +169,7 @@ func build(o Options) error {
 
 	if err := write(Page{
 		Title:       "Example reports · glsec",
-		Description: "What glsec's text, table, GitLab Code Quality, JUnit, SARIF and JSON output look like, where GitLab shows each one, and the CycloneDX inventory of a pipeline.",
+		Description: "What glsec's text, table, GitLab Code Quality, JUnit, SARIF, GitLab SAST, template and JSON output look like, where GitLab shows each one, and the CycloneDX inventory of a pipeline.",
 		Path:        "/reports/",
 		Reports:     reports,
 		Input:       strings.Split(input, "\n"),

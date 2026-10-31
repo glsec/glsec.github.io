@@ -29,13 +29,16 @@ go build -C "$work/glsec" -o "$work/glsec-bin" ./cmd/glsec
 # findings; anything else is a failure.
 mkdir "$work/reports"
 cp sample/bad-pipeline.yml "$work/reports/input.yml"
-for format in text table codeclimate junit sarif json; do
+for format in text table codeclimate junit sarif gitlab-sast template json; do
   rc=0
   # Text and table keep glsec's terminal colours; the site turns them into
   # spans. The machine-readable formats have none.
-  color=--no-color
-  case "$format" in text | table) color= ;; esac
-  (cd sample && FORCE_COLOR=1 "$work/glsec-bin" $color --format "$format" bad-pipeline.yml) > "$work/reports/$format.txt" || rc=$?
+  args=(--no-color)
+  case "$format" in
+  text | table) args=() ;;
+  template) args+=(--template "$work/glsec/docs/templates/mr-comment.md.tmpl") ;;
+  esac
+  (cd sample && FORCE_COLOR=1 "$work/glsec-bin" "${args[@]}" --format "$format" bad-pipeline.yml) > "$work/reports/$format.txt" || rc=$?
   [ "$rc" -eq 1 ] || { echo "glsec --format $format exited $rc on the sample" >&2; cat "$work/reports/$format.txt" >&2; exit 1; }
 done
 
