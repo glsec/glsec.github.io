@@ -242,7 +242,7 @@ func build(o Options) error {
 		}
 	}
 
-	if err := write(Page{Title: "Not found · glsec", Path: "/404.html"}, "404.html"); err != nil {
+	if err := write(Page{Title: "Not found · glsec", Description: "This page doesn't exist on glsec.github.io. The rule list and the home page link to everything there is.", Path: "/404.html"}, "404.html"); err != nil {
 		return err
 	}
 	if err := copyStatic(out); err != nil {
