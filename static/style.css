@@ -55,6 +55,8 @@ a { color: var(--link); text-underline-offset: 3px; }
 
 code, pre { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.9em; }
 :not(pre) > code { background: var(--code-bg); padding: 0.1em 0.35em; border-radius: 3px; overflow-wrap: anywhere; }
+/* Link text on the code background misses the contrast minimum; inside a link, code keeps only its font. */
+a > code { background: none; padding: 0; }
 pre {
   background: var(--code-bg);
   border-left: 3px solid var(--orange);
@@ -153,7 +155,7 @@ tbody tr:hover { background: var(--surface); }
 .bottom { background: var(--slate); color: var(--on-slate-muted); font-size: 0.9rem; padding: 18px 0 22px; margin-top: 40px; }
 .bottom a { color: var(--on-slate); }
 
-@media (max-width: 480px) {
+@media (max-width: 700px) {
   /* The links get their own row under the logo instead of overflowing. */
   .top-inner { height: auto; flex-wrap: wrap; row-gap: 6px; padding-top: 10px; padding-bottom: 8px; }
   .top nav { width: 100%; flex-wrap: wrap; column-gap: 16px; row-gap: 4px; font-size: 0.95rem; }
@@ -173,6 +175,12 @@ tbody tr:hover { background: var(--surface); }
 .risk-rules { list-style: none; padding: 0; margin: 10px 0 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 4px 20px; font-size: 0.93rem; }
 .risk-rules a { color: var(--text); text-decoration: none; }
 .risk-rules a:hover .rid, .risk-rules a:hover { color: var(--link); }
+.doc .risk h3 { margin: 0; font-size: 1.05rem; flex: 1 1 200px; }
+.risk-id a { color: inherit; }
+.sev, .risk .gap, .steps .unseen { color: var(--muted); font-size: 0.9rem; }
+.steps { margin: 10px 0 0; padding-left: 1.4em; }
+.steps li { margin: 4px 0; }
+.steps .rid { margin-right: 0; }
 .rid { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; color: var(--link); margin-right: 4px; }
 
 .toc { display: flex; flex-wrap: wrap; gap: 8px; margin: 20px 0 8px; }

@@ -75,6 +75,8 @@ type Page struct {
 	Rule        *Rule
 	RuleCount   int
 	Perf        *Perf
+	Attacks     *Attacks
+	HasAttacks  bool // the release ships docs/advisories.yml, so the menu links the page
 }
 
 func main() {
@@ -111,7 +113,10 @@ func build(o Options) error {
 	if err != nil {
 		return err
 	}
-	tmpl, err := template.New("").Funcs(template.FuncMap{"lower": strings.ToLower, "thousands": thousands}).ParseFS(templateFS, "templates/*.html")
+	// ruleDesc gives a rule's one-line description from the rule list, filled
+	// once the list is loaded.
+	ruleDesc := map[string]string{}
+	tmpl, err := template.New("").Funcs(template.FuncMap{"lower": strings.ToLower, "thousands": thousands, "ruleDesc": func(id string) string { return ruleDesc[id] }}).ParseFS(templateFS, "templates/*.html")
 	if err != nil {
 		return err
 	}
@@ -129,13 +134,22 @@ func build(o Options) error {
 	if err != nil {
 		return err
 	}
+	for _, r := range risks {
+		for _, l := range r.Rules {
+			ruleDesc[l.ID] = l.Description
+		}
+	}
+	attacks, err := loadAdvisories(src, ids)
+	if err != nil {
+		return err
+	}
 	if err := os.RemoveAll(out); err != nil {
 		return err
 	}
 
 	var urls []string
 	write := func(p Page, name string) error {
-		p.Version, p.Component, p.RuleCount = version, component, len(ids)
+		p.Version, p.Component, p.RuleCount, p.HasAttacks = version, component, len(ids), attacks != nil
 		dir := out
 		if name != "404.html" {
 			dir = filepath.Join(out, filepath.FromSlash(strings.Trim(p.Path, "/")))
@@ -196,6 +210,17 @@ func build(o Options) error {
 		Perf:        perf,
 	}, "performance.html"); err != nil {
 		return err
+	}
+
+	if attacks != nil {
+		if err := write(Page{
+			Title:       "Known attacks and what glsec sees of them · glsec",
+			Description: "Published attacks on CI/CD pipelines, which configuration shape each one used, and which glsec rules report that shape in .gitlab-ci.yml.",
+			Path:        "/attacks/",
+			Attacks:     attacks,
+		}, "attacks.html"); err != nil {
+			return err
+		}
 	}
 
 	if err := write(Page{
