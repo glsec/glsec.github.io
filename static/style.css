@@ -55,6 +55,8 @@ a { color: var(--link); text-underline-offset: 3px; }
 
 code, pre { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.9em; }
 :not(pre) > code { background: var(--code-bg); padding: 0.1em 0.35em; border-radius: 3px; overflow-wrap: anywhere; }
+/* Link text on the code background misses the contrast minimum; inside a link, code keeps only its font. */
+a > code { background: none; padding: 0; }
 pre {
   background: var(--code-bg);
   border-left: 3px solid var(--orange);
