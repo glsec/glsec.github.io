@@ -37,7 +37,7 @@ jobs:
         with:
           node-version: 24
       - name: Install Lighthouse
-        working-directory: .github/site-checks
+        working-directory: site-checks
         run: |
           npm ci --ignore-scripts
           npm audit signatures
@@ -56,9 +56,9 @@ jobs:
           n=0
           while read -r page; do
             n=$((n + 1))
-            CHROME_PATH=$(command -v google-chrome) .github/site-checks/node_modules/.bin/lighthouse "http://localhost:8000$page" \
+            CHROME_PATH=$(command -v google-chrome) site-checks/node_modules/.bin/lighthouse "http://localhost:8000$page" \
               "${preset[@]}" --quiet --chrome-flags="--headless=new" \
               --only-categories=performance,accessibility,seo \
               --output=json --output-path="$RUNNER_TEMP/lighthouse/$n.json" < /dev/null
-          done < .github/site-checks/pages.txt
-          node .github/site-checks/lighthouse.mjs "$RUNNER_TEMP"/lighthouse/*.json
+          done < site-checks/pages.txt
+          node site-checks/lighthouse.mjs "$RUNNER_TEMP"/lighthouse/*.json

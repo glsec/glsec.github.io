@@ -19,7 +19,7 @@ updates:
     cooldown:
       default-days: 7
   - package-ecosystem: npm
-    directory: /.github/site-checks
+    directory: /site-checks
     schedule:
       interval: weekly
     cooldown:
