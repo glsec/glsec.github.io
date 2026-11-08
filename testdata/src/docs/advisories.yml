@@ -1,0 +1,54 @@
+# Copyright The glsec Authors
+# SPDX-License-Identifier: Apache-2.0
+#
+# Made-up entries in the shape of glsec's docs/advisories.yml.
+
+- id: CVE-2099-0001
+  kind: cve
+  product: Example Image
+  summary: "A moving image tag pulled a tampered release."
+  coverage: partial
+  rules:
+    - {rule: GL001, severity: error}
+  reason: no-rule-yet
+  issue: 9001
+  note: "A version tag is only reported with digests required."
+
+- id: CVE-2099-0002
+  kind: cve
+  product: Example Tool
+  summary: "A script piped into a shell ran whatever the server sent."
+  coverage: full
+  rules:
+    - {rule: GL011, severity: error}
+
+- id: CVE-2099-0003
+  kind: cve
+  product: Example Runner
+  summary: "A runner setting exposed tokens to other jobs."
+  coverage: none
+  reason: not-static
+  note: "Runner settings are not in the pipeline file."
+
+- id: CVE-2099-0004
+  aliases: [GHSA-2222-3333-4444]
+  kind: analogue
+  product: example/branch-action
+  fixed: "2.0.1"
+  summary: "A crafted branch name ran as code in a workflow step."
+  coverage: full
+  rules:
+    - {rule: GL002, severity: warn}
+
+- id: Example Worm
+  kind: campaign
+  product: npm
+  summary: "A worm spread through install scripts."
+  coverage: partial
+  rules:
+    - {rule: GL082, severity: warn}
+  reason: not-static
+  note: "glsec reports the job shape, not the package."
+  steps:
+    - {step: "A job runs install scripts.", rules: [GL082]}
+    - {step: "The script steals the token.", reason: not-static}

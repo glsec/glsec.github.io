@@ -42,6 +42,69 @@
 </main>
 {{template "foot" .}}{{end}}
 
+{{define "attacks.html"}}{{template "head" .}}
+<main class="wrap doc">
+  <h1>Known attacks</h1>
+  <p>Published attacks on CI/CD pipelines that depended on something a <code>.gitlab-ci.yml</code> can carry, and the glsec {{.Version}} rules that report that configuration. glsec detects the configuration shape an attack used: a finding means the pipeline has what the attack needed, not that glsec protects against the CVE or the malicious package itself.</p>
+  <p>Bugs in GitLab itself are left out. They are fixed by upgrading GitLab, and a linter that reads the pipeline file can't see them.</p>
+  {{with .Attacks}}
+  <nav class="toc" aria-label="Sections">{{if .Detected}}<a href="#detected">Detected</a>{{end}}{{if .NotDetected}}<a href="#not-detected">Not detected</a>{{end}}{{if .Campaigns}}<a href="#campaigns">Campaigns</a>{{end}}{{if .Analogues}}<a href="#analogues">GitHub Actions analogues</a>{{end}}</nav>
+  {{if .Detected}}
+  <section id="detected">
+    <h2>Detected</h2>
+    <p>Attacks on GitLab CI pipelines whose configuration glsec reports, fully or in part.</p>
+    <ol class="risks">{{range .Detected}}{{template "advisory" .}}{{end}}</ol>
+  </section>
+  {{end}}
+  {{if .NotDetected}}
+  <section id="not-detected">
+    <h2>Not detected</h2>
+    <p>Attacks that a pipeline file could show, and why glsec doesn't report them.</p>
+    <ol class="risks">{{range .NotDetected}}{{template "advisory" .}}{{end}}</ol>
+  </section>
+  {{end}}
+  {{if .Campaigns}}
+  <section id="campaigns">
+    <h2>Campaigns</h2>
+    <p>Named campaigns without a single id, step by step: which steps a pipeline file shows, and which happen where no file scan can look.</p>
+    <ol class="risks">{{range .Campaigns}}{{template "advisory" .}}{{end}}</ol>
+  </section>
+  {{end}}
+  {{if .Analogues}}
+  <section id="analogues">
+    <h2>GitHub Actions analogues</h2>
+    <p>These attacks hit GitHub Actions workflows, which glsec doesn't scan. Each entry is the same attack class in GitLab CI: the rules report the GitLab configuration with the same shape, not the CVE.</p>
+    <ol class="risks">{{range .Analogues}}{{template "advisory" .}}{{end}}</ol>
+  </section>
+  {{end}}
+  {{end}}
+  <p class="source">Built from <a href="https://github.com/glsec/glsec/blob/v{{.Version}}/docs/advisories.yml">docs/advisories.yml</a> of glsec {{.Version}}. Each detected entry has a fixture in glsec's tests that must produce the rules listed here.</p>
+</main>
+{{template "foot" .}}{{end}}
+
+{{define "advisory"}}
+    <li class="risk{{if eq .Coverage "none"}} risk-outside{{end}}" id="{{.Anchor}}">
+      <div class="risk-head">
+        <span class="risk-id">{{if .URL}}<a href="{{.URL}}">{{.ID}}</a>{{else}}{{.ID}}{{end}}</span>
+        <h3>{{.Product}}</h3>
+        <span class="risk-count">{{if eq .Coverage "full"}}detected{{else if eq .Coverage "partial"}}partly detected{{else}}not detected{{end}}</span>
+      </div>
+      <p>{{.Summary}}{{with .Fixed}} Fixed in {{.}}.{{end}}{{with .AliasLinks}} Also known as {{range $i, $l := .}}{{if $i}}, {{end}}{{if $l.URL}}<a href="{{$l.URL}}">{{$l.ID}}</a>{{else}}{{$l.ID}}{{end}}{{end}}.{{end}}</p>
+      {{if .Steps}}
+      <ol class="steps">{{range .Steps}}
+        <li>{{.Step}} {{if .Rules}}<span class="seen">Reported by {{range $i, $r := .Rules}}{{if $i}}, {{end}}<a href="/rules/{{$r}}/"><span class="rid">{{$r}}</span></a>{{end}}.</span>{{else}}<span class="unseen">Not seen: {{.ReasonText}}.</span>{{end}}</li>{{end}}
+      </ol>
+      {{end}}
+      {{if and .Rules (not .Steps)}}
+      <ul class="risk-rules">
+        {{range .Rules}}<li><a href="/rules/{{.Rule}}/"><span class="rid">{{.Rule}}</span> {{ruleDesc .Rule}}</a> <span class="sev">{{.Severity}}</span></li>
+        {{end}}
+      </ul>
+      {{end}}
+      {{if .Steps}}{{with .Note}}<p class="gap">{{.}}</p>{{end}}{{else if .Reason}}<p class="gap"><strong>Not seen:</strong> {{.ReasonText}}.{{with .Note}} {{.}}{{end}}{{with .IssueURL}} <a href="{{.}}">Tracking issue</a>.{{end}}</p>{{end}}
+    </li>
+{{end}}
+
 {{define "reports.html"}}{{template "head" .}}
 <main class="wrap doc">
   <h1>Example reports</h1>
