@@ -5,7 +5,7 @@
   "license": "Apache-2.0",
   "devDependencies": {
     "@axe-core/cli": "4.14.0",
-    "html-validate": "11.16.2",
+    "html-validate": "11.18.0",
     "lighthouse": "13.5.0",
     "stylelint": "17.16.0",
     "stylelint-config-recommended": "18.0.0"
