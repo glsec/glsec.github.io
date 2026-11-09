@@ -286,6 +286,7 @@ func TestBuild_UltimatePage(t *testing.T) {
 		`version: "1.23.0"`,
 		`<a href="/rules/GL082/#scan-execution-policies">`,
 		`<a href="/reports/#gitlab-sast">`,
+		`docs/ci-integration.md#when-someone-else-can-push-leaked-tokens-and-injected-jobs`,
 	} {
 		if !strings.Contains(page, want) {
 			t.Errorf("Ultimate page lacks %s", want)
