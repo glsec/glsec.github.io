@@ -1,12 +1,12 @@
 {{define "overview.html"}}{{template "head" .}}
-<main class="wrap doc">
+<main id="main" class="wrap doc">
   <h1>Rules</h1>
   {{.Body}}
 </main>
 {{template "foot" .}}{{end}}
 
 {{define "rule.html"}}{{template "head" .}}
-<main class="wrap doc">
+<main id="main" class="wrap doc">
   <p class="crumbs"><a href="/rules/">Rules</a> / {{.Rule.ID}}</p>
   <h1><span class="rule-id">{{.Rule.ID}}</span> {{.Rule.TitleHTML}}</h1>
   {{.Rule.Body}}
@@ -15,7 +15,7 @@
 {{template "foot" .}}{{end}}
 
 {{define "owasp.html"}}{{template "head" .}}
-<main class="wrap doc">
+<main id="main" class="wrap doc">
   <h1>OWASP Top 10 CI/CD Security Risks in GitLab</h1>
   <p>The <a href="https://owasp.org/www-project-top-10-ci-cd-security-risks/">OWASP Top 10 CI/CD Security Risks</a> list the ways a delivery pipeline gets attacked. glsec's {{.RuleCount}} rules cover {{.Covered}} of the ten in <code>.gitlab-ci.yml</code>.{{if .Outside}} The remaining {{.Outside}} depend on settings and logs that a pipeline file doesn't contain.{{end}}</p>
   <ol class="risks">
@@ -43,7 +43,7 @@
 {{template "foot" .}}{{end}}
 
 {{define "attacks.html"}}{{template "head" .}}
-<main class="wrap doc">
+<main id="main" class="wrap doc">
   <h1>Known attacks</h1>
   <p>Published attacks on CI/CD pipelines that depended on something a <code>.gitlab-ci.yml</code> can carry, and the glsec {{.Version}} rules that report that configuration. glsec detects the configuration shape an attack used: a finding means the pipeline has what the attack needed, not that glsec protects against the CVE or the malicious package itself.</p>
   <p>Bugs in GitLab itself are left out. They are fixed by upgrading GitLab, and a linter that reads the pipeline file can't see them.</p>
@@ -106,7 +106,7 @@
 {{end}}
 
 {{define "reports.html"}}{{template "head" .}}
-<main class="wrap doc">
+<main id="main" class="wrap doc">
   <h1>Example reports</h1>
   <p>One pipeline file and what glsec reports for it. Each output below is what glsec {{.Version}} prints for this file, regenerated with every release. The GitLab screenshots show the same file in the <a href="https://gitlab.com/glsec-io/examples">example projects</a> and are taken by hand.</p>
   <pre class="numbered" tabindex="0"><code>{{range .Input}}<span class="ln">{{.}}</span>
@@ -145,7 +145,7 @@
 {{template "foot" .}}{{end}}
 
 {{define "ultimate.html"}}{{template "head" .}}
-<main class="wrap doc">
+<main id="main" class="wrap doc">
   <h1>GitLab Ultimate: vulnerability report and policies</h1>
   <p>Everything on this page needs GitLab Ultimate. It was tried out on gitlab.com on 2026-10-27, in a public test project with a pipeline file full of deliberate findings. The screenshots show GitLab Ultimate, cropped to the part that matters. GitLab only shows the vulnerability report and the security widget to project members, so the screenshots have no link. glsec is an independent project, not affiliated with or endorsed by GitLab.</p>
 
@@ -207,7 +207,7 @@ glsec:
 {{template "foot" .}}{{end}}
 
 {{define "performance.html"}}{{template "head" .}}
-<main class="wrap doc">
+<main id="main" class="wrap doc">
   <h1>Performance</h1>
   {{with .Perf}}
   <p>How long glsec takes to scan one large pipeline: 2,000 jobs with <code>extends:</code> and <code>!reference</code> chains, anchors and long scripts, about 650 KB, far bigger than real pipelines so that slow code shows. Every release since v{{.Start}} and every change to <code>main</code> is measured on the same file, each time as the median of seven runs. Every dot links to its commit; hover for the details.</p>
@@ -246,7 +246,7 @@ glsec:
 {{template "foot" .}}{{end}}
 
 {{define "404.html"}}{{template "head" .}}
-<main class="wrap doc">
+<main id="main" class="wrap doc">
   <h1>Page not found</h1>
   <p>Try the <a href="/rules/">rule list</a> or the <a href="/">home page</a>.</p>
 </main>
