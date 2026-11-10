@@ -26,6 +26,10 @@ The build fails on a rule doc whose first line isn't `# GLxxx — Title`, on a r
 
 To change rule text, edit the doc in [glsec](https://github.com/glsec/glsec/tree/main/docs/rules). It appears here with the next release.
 
+## Contributing
+
+This repository holds only the website. Anything about glsec itself — rules, their wording and severity, the CLI, a bug — belongs in the main repository and its [contributing guide](https://github.com/glsec/glsec/blob/main/CONTRIBUTING.md); rule text is edited there and appears here with the next release (see [Deployment](#deployment)). For the site itself — layout, content, the accessibility and SEO checks — the build and test steps are under [Building](#building); open a pull request here. Report a security problem through [glsec's security policy](https://github.com/glsec/glsec/blob/main/SECURITY.md), not a public issue.
+
 ## License
 
 Apache-2.0, like glsec.
