@@ -49,5 +49,5 @@ jobs:
           urls=()
           while read -r page; do urls+=("http://localhost:8000$page"); done < site-checks/pages.txt
           site-checks/node_modules/.bin/axe "${urls[@]}" \
-            --tags wcag2a,wcag2aa,wcag21aa,best-practice \
+            --tags wcag2a,wcag2aa,wcag21a,wcag21aa,wcag22aa,best-practice \
             --chromedriver-path "$CHROMEWEBDRIVER/chromedriver" --exit
