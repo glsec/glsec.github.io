@@ -28,7 +28,7 @@
       <a href="/owasp/"{{if eq .Path "/owasp/"}} aria-current="page"{{end}}>OWASP</a>
       {{if .HasAttacks}}<a href="/attacks/"{{if eq .Path "/attacks/"}} aria-current="page"{{end}}>Attacks</a>
       {{end}}      <a href="/reports/"{{if eq .Path "/reports/"}} aria-current="page"{{end}}>Reports</a>
-      <a href="/performance/"{{if eq .Path "/performance/"}} aria-current="page"{{end}}>Performance</a>
+      {{if .HasBlog}}<a href="/blog/"{{if eq .Path "/blog/"}} aria-current="page"{{end}}>Blog</a>{{end}}
       <a href="https://gitlab.com/explore/catalog/glsec-io/glsec">GitLab</a>
       <a href="https://github.com/glsec/glsec">GitHub</a>
     </nav>
@@ -39,7 +39,7 @@
 {{define "foot"}}
 <footer class="bottom">
   <div class="wrap">
-    <p>glsec {{.Version}} · {{.RuleCount}} rules · <a href="https://github.com/glsec/glsec/blob/main/LICENSE">Apache-2.0</a> · <a href="https://github.com/glsec/glsec/blob/main/SECURITY.md">Security policy</a> · <a href="https://github.com/glsec/glsec.github.io">Site source</a></p>
+    <p>glsec {{.Version}} · {{.RuleCount}} rules · <a href="https://github.com/glsec/glsec/blob/main/LICENSE">Apache-2.0</a> · <a href="https://github.com/glsec/glsec/blob/main/SECURITY.md">Security policy</a> · <a href="/progress/">Progress</a> · <a href="/accessibility/">Accessibility</a> · <a href="/privacy/">Privacy</a> · <a href="https://github.com/glsec/glsec.github.io">Site source</a></p>
   </div>
 </footer>
 </body>

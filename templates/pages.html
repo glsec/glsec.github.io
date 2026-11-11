@@ -207,9 +207,9 @@ glsec:
 </main>
 {{template "foot" .}}{{end}}
 
-{{define "performance.html"}}{{template "head" .}}
+{{define "progress.html"}}{{template "head" .}}
 <main id="main" class="wrap doc">
-  <h1>Performance</h1>
+  <h1>Progress</h1>
   {{with .Perf}}
   <p>How long glsec takes to scan one large pipeline: 2,000 jobs with <code>extends:</code> and <code>!reference</code> chains, anchors and long scripts, about 650 KB, far bigger than real pipelines so that slow code shows. Every release since v{{.Start}} and every change to <code>main</code> is measured on the same file, each time as the median of seven runs. Every dot links to its commit; hover for the details.</p>
   <figure class="perf">
@@ -243,6 +243,58 @@ glsec:
   </details>
   <p class="source">Measured by the <a href="https://github.com/glsec/glsec/blob/main/.github/workflows/benchmark-history.yml">benchmark history workflow</a>; the records and the input are on the <a href="https://github.com/glsec/glsec/tree/benchmarks">benchmarks branch</a>.</p>
   {{end}}
+</main>
+{{template "foot" .}}{{end}}
+
+{{define "privacy.html"}}{{template "head" .}}
+<main id="main" class="wrap doc">
+  <h1>Privacy</h1>
+  <p>This is the privacy information for glsec.github.io under Articles 13 and 14 of the GDPR. The site is static: it sets no cookies, runs no JavaScript, uses no analytics, and loads no fonts, scripts or other resources from third parties. Everything is served from this site.</p>
+  <h2>Controller</h2>
+  <p>Nicolai Ehrhardt. Contact: <a href="mailto:glsec.contact@proton.me">glsec.contact@proton.me</a>.</p>
+  <h2>Hosting and server logs</h2>
+  <p>The site is hosted on GitHub Pages (GitHub, Inc., a Microsoft company, 88 Colin P. Kelly Jr. Street, San Francisco, CA 94107, USA). When you open a page, GitHub's servers process your IP address and standard request data, such as the time, the page requested and your browser's user agent, to deliver the page and keep the service secure. GitHub states that a visitor's IP address is logged and stored for security purposes. The legal basis is our legitimate interest in a secure and reliable website, Article 6(1)(f) GDPR. For GitHub's own processing, see the <a href="https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement">GitHub Privacy Statement</a>.</p>
+  <h2>Transfer to the USA</h2>
+  <p>GitHub processes this data in the United States. GitHub and Microsoft are certified under the EU-US Data Privacy Framework, and standard contractual clauses apply as an additional safeguard.</p>
+  <h2>Your rights</h2>
+  <p>Under the GDPR you have the right of access, rectification, erasure, restriction, data portability and objection, and the right to lodge a complaint with a supervisory authority. For data this site controls, email <a href="mailto:glsec.contact@proton.me">glsec.contact@proton.me</a>. For data GitHub collects as the host, contact GitHub.</p>
+</main>
+{{template "foot" .}}{{end}}
+
+{{define "accessibility.html"}}{{template "head" .}}
+<main id="main" class="wrap doc">
+  <h1>Accessibility</h1>
+  <p>This site works toward <a href="https://www.w3.org/TR/WCAG22/">WCAG 2.2 Level AA</a>. Every page is checked on each change and must score 100 in Lighthouse's accessibility audit, and changes are reviewed by hand too, because an automated score can't tell whether a page is actually usable.</p>
+  <p>The site runs no JavaScript. It is semantic HTML with a skip link, visible keyboard focus, text that stays legible when you zoom, and wide tables and code blocks you can scroll with the keyboard. It has a light and a dark theme that follow your system setting.</p>
+  <p>glsec the command-line tool has its own accessibility properties: severity is always a word, never color alone, color is optional and off in a pipe, and every finding is available in machine-readable formats for a screen reader or a script. The full statement, for the tool and this site, is <a href="https://github.com/glsec/glsec/blob/main/ACCESSIBILITY.md">ACCESSIBILITY.md</a> in the main repository.</p>
+  <p>If something here stops you from using glsec, please <a href="https://github.com/glsec/glsec/issues/new?template=accessibility.yml">open an accessibility issue</a> and tell us what you were doing, which tool and assistive technology you used with versions, and what got in the way.</p>
+</main>
+{{template "foot" .}}{{end}}
+
+{{define "blog.html"}}{{template "head" .}}
+<main id="main" class="wrap doc">
+  <h1>Blog</h1>
+  <p>Short, practical notes on GitLab CI/CD security: real incidents, the patterns that bite, and what glsec reports.</p>
+  <ul class="posts">
+  {{range .Posts}}<li>
+    <h2><a href="{{.Path}}">{{.Title}}</a></h2>
+    <p class="post-meta"><time datetime="{{.Date}}">{{.DateDisplay}}</time></p>
+    <p>{{.Summary}}</p>
+  </li>
+  {{end}}
+  </ul>
+</main>
+{{template "foot" .}}{{end}}
+
+{{define "post.html"}}{{template "head" .}}
+<main id="main" class="wrap doc">
+  <p class="crumbs"><a href="/blog/">Blog</a></p>
+  <article>
+    <h1>{{.Post.Title}}</h1>
+    <p class="post-meta"><time datetime="{{.Post.Date}}">{{.Post.DateDisplay}}</time></p>
+    {{.Post.Body}}
+  </article>
+  <p class="source"><a href="/rules/">Browse the rules</a> · <a href="https://github.com/glsec/glsec">glsec on GitHub</a></p>
 </main>
 {{template "foot" .}}{{end}}
 

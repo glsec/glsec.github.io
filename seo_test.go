@@ -36,6 +36,9 @@ func TestBuild_SEO(t *testing.T) {
 		if err != nil || d.Name() != "index.html" {
 			return err
 		}
+		if strings.Contains(read(t, path), `content="noindex"`) {
+			return nil // a redirect page, not indexed and not in the sitemap
+		}
 		pages++
 		rel, _ := filepath.Rel(out, filepath.Dir(path))
 		url := siteURL + "/"

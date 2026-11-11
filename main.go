@@ -22,6 +22,7 @@ import (
 	"regexp"
 	"sort"
 	"strings"
+	"time"
 
 	"github.com/yuin/goldmark"
 	"github.com/yuin/goldmark/ast"
@@ -76,7 +77,23 @@ type Page struct {
 	RuleCount   int
 	Perf        *Perf
 	Attacks     *Attacks
-	HasAttacks  bool // the release ships docs/advisories.yml, so the menu links the page
+	HasAttacks  bool   // the release ships docs/advisories.yml, so the menu links the page
+	Posts       []Post // the blog index lists these
+	Post        *Post  // the one post a post page shows
+	HasBlog     bool   // the menu links the blog
+}
+
+// Post is one blog post, loaded from a Markdown file whose "---"-delimited
+// front matter carries its title, description, date, slug and summary.
+type Post struct {
+	Title       string
+	Description string
+	Slug        string
+	Date        string // ISO 8601, YYYY-MM-DD
+	DateDisplay string // "January 2, 2006"
+	Summary     string
+	Path        string // /blog/<slug>/
+	Body        template.HTML
 }
 
 func main() {
@@ -85,11 +102,12 @@ func main() {
 	component := flag.String("component", "", "latest GitLab component release, e.g. v1.0.25")
 	reports := flag.String("reports", "", "directory with glsec's output on the sample, one <format>.txt per format, and the inventory of sample/inventory.yml")
 	rules := flag.String("rules", "", "output of glsec list --format json from the same release")
+	posts := flag.String("posts", "posts", "directory with blog posts, one Markdown file with front matter per post; empty or absent builds no blog")
 	bench := flag.String("bench", "", "data/benchmarks.jsonl from glsec's benchmarks branch")
 	tags := flag.String("tags", "", "glsec's tags as a JSON list of {name, sha}")
 	out := flag.String("out", "_site", "output directory")
 	flag.Parse()
-	if err := build(Options{Src: *src, Version: *version, Component: *component, Reports: *reports, Rules: *rules, Bench: *bench, Tags: *tags, Out: *out}); err != nil {
+	if err := build(Options{Src: *src, Version: *version, Component: *component, Reports: *reports, Rules: *rules, Posts: *posts, Bench: *bench, Tags: *tags, Out: *out}); err != nil {
 		fmt.Fprintln(os.Stderr, "error:", err)
 		os.Exit(1)
 	}
@@ -98,6 +116,7 @@ func main() {
 // Options are the generator's inputs.
 type Options struct {
 	Src, Version, Component, Reports, Rules, Bench, Tags, Out string
+	Posts                                                     string // directory of blog posts; empty builds no blog
 }
 
 func build(o Options) error {
@@ -143,13 +162,17 @@ func build(o Options) error {
 	if err != nil {
 		return err
 	}
+	posts, err := loadPosts(o.Posts)
+	if err != nil {
+		return err
+	}
 	if err := os.RemoveAll(out); err != nil {
 		return err
 	}
 
 	var urls []string
 	write := func(p Page, name string) error {
-		p.Version, p.Component, p.RuleCount, p.HasAttacks = version, component, len(ids), attacks != nil
+		p.Version, p.Component, p.RuleCount, p.HasAttacks, p.HasBlog = version, component, len(ids), attacks != nil, len(posts) > 0
 		dir := out
 		if name != "404.html" {
 			dir = filepath.Join(out, filepath.FromSlash(strings.Trim(p.Path, "/")))
@@ -204,11 +227,32 @@ func build(o Options) error {
 	}
 
 	if err := write(Page{
-		Title:       "Performance · glsec",
-		Description: "How long glsec takes to scan the same large pipeline, release by release and commit by commit.",
-		Path:        "/performance/",
+		Title:       "Progress · glsec",
+		Description: "How glsec changes release by release: its rule count, and how long it takes to scan the same large pipeline.",
+		Path:        "/progress/",
 		Perf:        perf,
-	}, "performance.html"); err != nil {
+	}, "progress.html"); err != nil {
+		return err
+	}
+	// The page was /performance/ before the rename. GitHub Pages has no server
+	// redirects, so the old URL keeps a page that sends readers on.
+	if err := writeRedirect(out, "/performance/", "/progress/"); err != nil {
+		return err
+	}
+
+	if err := write(Page{
+		Title:       "Accessibility · glsec",
+		Description: "How glsec.github.io works toward WCAG 2.2 AA, how it is tested, and how to report an accessibility barrier.",
+		Path:        "/accessibility/",
+	}, "accessibility.html"); err != nil {
+		return err
+	}
+
+	if err := write(Page{
+		Title:       "Privacy · glsec",
+		Description: "Privacy information for glsec.github.io: a static site with no cookies, analytics or tracking, hosted on GitHub Pages.",
+		Path:        "/privacy/",
+	}, "privacy.html"); err != nil {
 		return err
 	}
 
@@ -272,6 +316,28 @@ func build(o Options) error {
 			Rule:        r,
 		}, "rule.html"); err != nil {
 			return err
+		}
+	}
+
+	if len(posts) > 0 {
+		if err := write(Page{
+			Title:       "Blog · glsec",
+			Description: "Short, practical notes on GitLab CI/CD security: real incidents, the patterns that bite, and what glsec reports.",
+			Path:        "/blog/",
+			Posts:       posts,
+		}, "blog.html"); err != nil {
+			return err
+		}
+		for i := range posts {
+			post := posts[i]
+			if err := write(Page{
+				Title:       post.Title + " · glsec",
+				Description: post.Description,
+				Path:        post.Path,
+				Post:        &post,
+			}, "post.html"); err != nil {
+				return err
+			}
 		}
 	}
 
@@ -449,6 +515,23 @@ func copyStatic(out string) error {
 	})
 }
 
+// cspMeta is the policy layout.html sets, for the pages built without it.
+const cspMeta = `<meta http-equiv="Content-Security-Policy" content="default-src 'none'; connect-src 'self'; img-src 'self'; style-src 'self' 'unsafe-inline'; base-uri 'none'; form-action 'none'">`
+
+// writeRedirect writes a page at from that sends the reader to to. It is left
+// out of the sitemap and marked noindex.
+func writeRedirect(out, from, to string) error {
+	dir := filepath.Join(out, filepath.FromSlash(strings.Trim(from, "/")))
+	if err := os.MkdirAll(dir, 0o755); err != nil {
+		return err
+	}
+	u := template.HTMLEscapeString(siteURL + to)
+	page := `<!doctype html><html lang="en"><head><meta charset="utf-8">` + cspMeta + `<title>Moved</title>` +
+		`<meta http-equiv="refresh" content="0; url=` + u + `"><link rel="canonical" href="` + u + `">` +
+		`<meta name="robots" content="noindex"></head><body><p>This page moved to <a href="` + u + `">` + u + `</a>.</p></body></html>` + "\n"
+	return os.WriteFile(filepath.Join(dir, "index.html"), []byte(page), 0o644)
+}
+
 func writeSitemap(out string, urls []string) error {
 	var b strings.Builder
 	b.WriteString(`<?xml version="1.0" encoding="UTF-8"?>` + "\n")
@@ -462,4 +545,122 @@ func writeSitemap(out string, urls []string) error {
 	}
 	robots := "User-agent: *\nAllow: /\nSitemap: " + siteURL + "/sitemap.xml\n"
 	return os.WriteFile(filepath.Join(out, "robots.txt"), []byte(robots), 0o644)
+}
+
+// loadPosts reads the blog posts from dir, newest first. An empty dir, or one
+// that does not exist, means no blog.
+func loadPosts(dir string) ([]Post, error) {
+	if dir == "" {
+		return nil, nil
+	}
+	entries, err := os.ReadDir(dir)
+	if errors.Is(err, fs.ErrNotExist) {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+	var posts []Post
+	for _, e := range entries {
+		if e.IsDir() || !strings.HasSuffix(e.Name(), ".md") {
+			continue
+		}
+		raw, err := os.ReadFile(filepath.Join(dir, e.Name())) //nolint:gosec // reads the site's own posts directory
+		if err != nil {
+			return nil, err
+		}
+		meta, body, err := frontMatter(raw)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", e.Name(), err)
+		}
+		for _, k := range []string{"title", "description", "date", "summary"} {
+			if meta[k] == "" {
+				return nil, fmt.Errorf("%s: front matter has no %s", e.Name(), k)
+			}
+		}
+		day, err := time.Parse("2006-01-02", meta["date"])
+		if err != nil {
+			return nil, fmt.Errorf("%s: date %q is not YYYY-MM-DD", e.Name(), meta["date"])
+		}
+		htmlBody, err := convertPost(body)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", e.Name(), err)
+		}
+		slug := meta["slug"]
+		if slug == "" {
+			slug = strings.TrimSuffix(e.Name(), ".md")
+		}
+		posts = append(posts, Post{
+			Title:       meta["title"],
+			Description: meta["description"],
+			Slug:        slug,
+			Date:        meta["date"],
+			DateDisplay: day.Format("January 2, 2006"),
+			Summary:     meta["summary"],
+			Path:        "/blog/" + slug + "/",
+			Body:        htmlBody,
+		})
+	}
+	sort.Slice(posts, func(i, j int) bool {
+		if posts[i].Date != posts[j].Date {
+			return posts[i].Date > posts[j].Date // newest first
+		}
+		return posts[i].Slug < posts[j].Slug
+	})
+	return posts, nil
+}
+
+// frontMatter splits a post into its "---"-delimited "key: value" header and
+// the Markdown body that follows it.
+func frontMatter(raw []byte) (map[string]string, []byte, error) {
+	s := string(raw)
+	const open = "---\n"
+	if !strings.HasPrefix(s, open) {
+		return nil, nil, errors.New("missing front matter")
+	}
+	rest := s[len(open):]
+	end := strings.Index(rest, "\n---\n")
+	if end < 0 {
+		return nil, nil, errors.New("unterminated front matter")
+	}
+	meta := map[string]string{}
+	for _, line := range strings.Split(rest[:end], "\n") {
+		if strings.TrimSpace(line) == "" {
+			continue
+		}
+		k, v, ok := strings.Cut(line, ":")
+		if !ok {
+			return nil, nil, fmt.Errorf("front matter line without ':': %q", line)
+		}
+		meta[strings.TrimSpace(k)] = unquote(strings.TrimSpace(v))
+	}
+	return meta, []byte(rest[end+len("\n---\n"):]), nil
+}
+
+// unquote drops one layer of surrounding double quotes, so a value with a
+// colon or a leading space keeps it, and unescapes \" and \\ inside.
+func unquote(s string) string {
+	if len(s) >= 2 && s[0] == '"' && s[len(s)-1] == '"' {
+		inner := s[1 : len(s)-1]
+		inner = strings.ReplaceAll(inner, `\"`, `"`)
+		inner = strings.ReplaceAll(inner, `\\`, `\`)
+		return inner
+	}
+	return s
+}
+
+// convertPost renders a blog post's Markdown. Unlike convert, it keeps links
+// as written, so a post links to a rule page (/rules/GL003/) or an external
+// page directly. Raw HTML stays off, as in the rule docs.
+func convertPost(raw []byte) (template.HTML, error) {
+	md := goldmark.New(
+		goldmark.WithExtensions(extension.GFM),
+		goldmark.WithParserOptions(parser.WithAutoHeadingID()),
+	)
+	var buf bytes.Buffer
+	if err := md.Convert(raw, &buf); err != nil {
+		return "", err
+	}
+	out := strings.ReplaceAll(buf.String(), "<pre>", `<pre tabindex="0">`)
+	return template.HTML(out), nil //nolint:gosec // goldmark output with raw HTML disabled
 }

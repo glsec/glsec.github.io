@@ -100,7 +100,7 @@ func TestLoadPerf_NoRatioYet(t *testing.T) {
 	if err := build(o); err != nil {
 		t.Fatal(err)
 	}
-	if page := read(t, filepath.Join(out, "performance", "index.html")); strings.Contains(page, "the chart shows the ratio") {
+	if page := read(t, filepath.Join(out, "progress", "index.html")); strings.Contains(page, "the chart shows the ratio") {
 		t.Error("ratio explanation without a ratio chart")
 	}
 }
@@ -162,10 +162,15 @@ func TestNiceStepAndThousands(t *testing.T) {
 }
 
 func TestBuild_PerformancePage(t *testing.T) {
-	page := read(t, filepath.Join(buildFixture(t), "performance", "index.html"))
+	out := buildFixture(t)
+	page := read(t, filepath.Join(out, "progress", "index.html"))
+	// The old /performance/ URL redirects to the renamed page.
+	if r := read(t, filepath.Join(out, "performance", "index.html")); !strings.Contains(r, `url=https://glsec.github.io/progress/`) {
+		t.Errorf("/performance/ does not redirect to /progress/:\n%s", r)
+	}
 	for _, want := range []string{
 		`<svg class="perf-chart"`, `Every release since v1.0.0`, `from 64 rules in v1.3.0 to 89 in v1.24.1`,
-		`aria-current="page">Performance`, `Commits on <code>main</code> since v1.24.1`,
+		`<h1>Progress</h1>`, `Commits on <code>main</code> since v1.24.1`,
 		`The latest commit, 0000000, takes 0.49 × v1.24.1.`, `<td class="num">0.51 × v1.24.1</td>`,
 		`<td><a href="https://github.com/glsec/glsec/commit/0000000000000000000000000000000000000002">v1.0.0</a></td>`,
 	} {
