@@ -52,4 +52,4 @@ curl -fsSL https://raw.githubusercontent.com/glsec/glsec/benchmarks/data/benchma
 gh api --paginate repos/glsec/glsec/tags --jq '.[] | {name, sha: .commit.sha}' | jq -s . > "$work/tags.json"
 
 go run . -src "$work/glsec" -version "${tag#v}" -component "$component" -reports "$work/reports" -rules "$work/rules.json" \
-  -bench "$work/benchmarks.jsonl" -tags "$work/tags.json" -out _site
+  -posts posts -bench "$work/benchmarks.jsonl" -tags "$work/tags.json" -out _site

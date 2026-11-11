@@ -14,7 +14,7 @@ import (
 )
 
 func fixture(out string) Options {
-	return Options{Src: "testdata/src", Version: "1.23.0", Component: "v1.0.25", Reports: "testdata/reports", Rules: "testdata/rules.json", Bench: "testdata/bench.jsonl", Tags: "testdata/tags.json", Out: out}
+	return Options{Src: "testdata/src", Version: "1.23.0", Component: "v1.0.25", Reports: "testdata/reports", Rules: "testdata/rules.json", Posts: "testdata/posts", Bench: "testdata/bench.jsonl", Tags: "testdata/tags.json", Out: out}
 }
 
 func buildFixture(t *testing.T) string {
@@ -33,6 +33,51 @@ func read(t *testing.T, path string) string {
 		t.Fatal(err)
 	}
 	return string(data)
+}
+
+func TestBuild_Blog(t *testing.T) {
+	out := buildFixture(t)
+	index := read(t, filepath.Join(out, "blog", "index.html"))
+	for _, want := range []string{
+		"<title>Blog · glsec</title>",
+		`href="/blog/sample-post/"`,
+		"A sample fixture post for the blog build",
+		`<time datetime="2026-01-02">January 2, 2026</time>`,
+	} {
+		if !strings.Contains(index, want) {
+			t.Errorf("blog index lacks %s", want)
+		}
+	}
+	post := read(t, filepath.Join(out, "blog", "sample-post", "index.html"))
+	for _, want := range []string{
+		"<title>A sample fixture post for the blog build · glsec</title>",
+		`<link rel="canonical" href="https://glsec.github.io/blog/sample-post/">`,
+		`<a href="/rules/GL001/">GL001</a>`,
+		`<h2 id="a-section-heading">A section heading</h2>`,
+	} {
+		if !strings.Contains(post, want) {
+			t.Errorf("blog post lacks %s", want)
+		}
+	}
+	if n := strings.Count(post, "<h1"); n != 1 {
+		t.Errorf("blog post has %d <h1>, want one", n)
+	}
+	if home := read(t, filepath.Join(out, "index.html")); !strings.Contains(home, `href="/blog/"`) {
+		t.Errorf("home nav lacks the blog link")
+	}
+	// An empty posts directory builds no blog and no nav link.
+	noBlog := filepath.Join(t.TempDir(), "_site")
+	o := fixture(noBlog)
+	o.Posts = ""
+	if err := build(o); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := os.Stat(filepath.Join(noBlog, "blog", "index.html")); err == nil {
+		t.Errorf("blog built with no posts directory")
+	}
+	if home := read(t, filepath.Join(noBlog, "index.html")); strings.Contains(home, `href="/blog/"`) {
+		t.Errorf("home nav links the blog with no posts")
+	}
 }
 
 func TestBuild_Pages(t *testing.T) {

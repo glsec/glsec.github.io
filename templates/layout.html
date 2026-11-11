@@ -29,6 +29,7 @@
       {{if .HasAttacks}}<a href="/attacks/"{{if eq .Path "/attacks/"}} aria-current="page"{{end}}>Attacks</a>
       {{end}}      <a href="/reports/"{{if eq .Path "/reports/"}} aria-current="page"{{end}}>Reports</a>
       <a href="/performance/"{{if eq .Path "/performance/"}} aria-current="page"{{end}}>Performance</a>
+      {{if .HasBlog}}<a href="/blog/"{{if eq .Path "/blog/"}} aria-current="page"{{end}}>Blog</a>{{end}}
       <a href="https://gitlab.com/explore/catalog/glsec-io/glsec">GitLab</a>
       <a href="https://github.com/glsec/glsec">GitHub</a>
     </nav>
