@@ -227,11 +227,24 @@ func build(o Options) error {
 	}
 
 	if err := write(Page{
-		Title:       "Performance · glsec",
-		Description: "How long glsec takes to scan the same large pipeline, release by release and commit by commit.",
-		Path:        "/performance/",
+		Title:       "Progress · glsec",
+		Description: "How glsec changes release by release: its rule count, and how long it takes to scan the same large pipeline.",
+		Path:        "/progress/",
 		Perf:        perf,
-	}, "performance.html"); err != nil {
+	}, "progress.html"); err != nil {
+		return err
+	}
+	// The page was /performance/ before the rename. GitHub Pages has no server
+	// redirects, so the old URL keeps a page that sends readers on.
+	if err := writeRedirect(out, "/performance/", "/progress/"); err != nil {
+		return err
+	}
+
+	if err := write(Page{
+		Title:       "Accessibility · glsec",
+		Description: "How glsec.github.io works toward WCAG 2.2 AA, how it is tested, and how to report an accessibility barrier.",
+		Path:        "/accessibility/",
+	}, "accessibility.html"); err != nil {
 		return err
 	}
 
@@ -492,6 +505,23 @@ func copyStatic(out string) error {
 		}
 		return os.WriteFile(dst, data, 0o644)
 	})
+}
+
+// cspMeta is the policy layout.html sets, for the pages built without it.
+const cspMeta = `<meta http-equiv="Content-Security-Policy" content="default-src 'none'; connect-src 'self'; img-src 'self'; style-src 'self' 'unsafe-inline'; base-uri 'none'; form-action 'none'">`
+
+// writeRedirect writes a page at from that sends the reader to to. It is left
+// out of the sitemap and marked noindex.
+func writeRedirect(out, from, to string) error {
+	dir := filepath.Join(out, filepath.FromSlash(strings.Trim(from, "/")))
+	if err := os.MkdirAll(dir, 0o755); err != nil {
+		return err
+	}
+	u := template.HTMLEscapeString(siteURL + to)
+	page := `<!doctype html><html lang="en"><head><meta charset="utf-8">` + cspMeta + `<title>Moved</title>` +
+		`<meta http-equiv="refresh" content="0; url=` + u + `"><link rel="canonical" href="` + u + `">` +
+		`<meta name="robots" content="noindex"></head><body><p>This page moved to <a href="` + u + `">` + u + `</a>.</p></body></html>` + "\n"
+	return os.WriteFile(filepath.Join(dir, "index.html"), []byte(page), 0o644)
 }
 
 func writeSitemap(out string, urls []string) error {
