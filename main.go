@@ -249,14 +249,6 @@ func build(o Options) error {
 	}
 
 	if err := write(Page{
-		Title:       "Impressum · glsec",
-		Description: "Legal notice and contact for glsec.github.io under § 5 DDG.",
-		Path:        "/impressum/",
-	}, "impressum.html"); err != nil {
-		return err
-	}
-
-	if err := write(Page{
 		Title:       "Privacy · glsec",
 		Description: "Privacy information for glsec.github.io: a static site with no cookies, analytics or tracking, hosted on GitHub Pages.",
 		Path:        "/privacy/",
